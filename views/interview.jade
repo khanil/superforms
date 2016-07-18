@@ -1,0 +1,13 @@
+include includes/head
+		title Заполнение формы | SuperForms
+		link(rel="stylesheet", href="/styles/react-widgets.css")
+	body
+		div#root.container
+		script#info(type="application/json").
+			{
+				"type": "INTERVIEW_FORM",
+				"getUrl": "/api/forms/#{id}",
+				"postUrl": "/api/forms/#{id}/responses",
+				"redirectUrl": "/"
+			}
+		script(type="text/javascript", src="/scripts/interview.js")

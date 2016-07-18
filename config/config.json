@@ -1,0 +1,36 @@
+{
+	"port" : 3000,
+	"domain" : "http://localhost:3000/",
+	"pg" : {
+		"url" : "postgres://hellmaker:justdoit@localhost:5432/superforms",
+		"poolIdleTimeout" : 30000
+	},
+	"session" : {
+		"secret" : "forCookieSign",
+		"cookie": {
+			"path" : "/",
+			"httpOnly" : true,
+			"maxAge" : null
+		},
+		"resave" : false,
+		"saveUninitialized" : false
+	},
+	"hash" : {
+		"user" : {
+			"salt" : "forAlphabetRandomShuffle",
+			"length" : 8
+		},
+		"form" : {
+			"salt" : "forRandomShuffleToo",
+			"length" : 12
+		},
+		"response" : {
+			"salt" : "nextShuffle",
+			"length" : 6
+		},
+		"report" : {
+			"salt" : "oneMoreShuffle",
+			"length" : 10
+		}
+	}
+}

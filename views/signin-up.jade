@@ -1,0 +1,25 @@
+include includes/head
+		title Вход | SuperForms
+	body.no-header
+		#sign-up-container.container
+			div.col-md-3
+			div.col-md-6
+				ul.nav.nav-tabs
+					li.active(name="signin"): a(href="#singin") Авторизация
+					li(name="signup"): a(href="#singup") Регистрация 
+
+				#error.alert.alert-danger.hide
+				div.form-group: input#login.form-control(type='text' placeholder="Электронная почта" required)
+				div.form-group: input#password.form-control(type='password' placeholder="Пароль" required)
+
+				div.tab-content
+					#signin.tab-pane.fade.in.active
+						
+					#signup.tab-pane.fade
+						div.form-group: input#confirmPassword.form-control(type='password' placeholder="Подтвердите пароль" required)
+
+				div.form-group: button#submit.btn.btn-primary.btn-block Войти
+
+			div.col-md-3
+
+		script(type="text/javascript", src="/scripts/signin-up.js")
