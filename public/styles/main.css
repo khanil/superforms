@@ -54,8 +54,9 @@ body.no-header {
   margin-right: 15px;
 }
 
-#signout {
+#signout i {
   margin-top: 5px;
+  margin-right: 3px;
 }
 
 #root {
@@ -200,4 +201,20 @@ table .form-group {
 
 .dropdown-toggle span:first-child {
   margin-right: 2px;
+}
+
+.back {
+  font-size: 14px;
+  text-transform: uppercase;
+  color: #286090;
+}
+
+ul.nav.nav-tabs {
+  margin-bottom: 15px;
+}
+
+ul.nav.nav-tabs li {
+  width: 50%;
+  text-align: center;
+  font-size: 16px;
 }

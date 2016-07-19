@@ -2,7 +2,7 @@
 	"port" : 3000,
 	"domain" : "http://localhost:3000/",
 	"pg" : {
-		"url" : "postgres://hellmaker:justdoit@localhost:5432/superforms",
+		"url" : "postgres://postgres:020199409@localhost:5432/superforms",
 		"poolIdleTimeout" : 30000
 	},
 	"session" : {

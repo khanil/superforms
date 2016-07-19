@@ -1,5 +1,3 @@
-node_modules/
-.directory
-*/.directory
-/logs
-/config/config.json
+*
+!.gitignore
+!public/
