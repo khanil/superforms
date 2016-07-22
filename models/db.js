@@ -6,7 +6,6 @@ var logger = require('../libs/logger');
 
 pg.defaults.poolIdleTimeout = config.get('pg:poolIdleTimeout');
 
-
 function query(queryString, data, allRows) {
 	// show query to db
 	// console.log('NEW QUERY : ' + queryString)
@@ -18,22 +17,43 @@ function query(queryString, data, allRows) {
 			// show connection pool
 			// console.log('all: ', pg.pools.all['"postgres://hellmaker:justdoit@localhost:5432/superforms"'].getPoolSize());
 
-	    client.query(queryString, data, (err, result) => {
-	    	// if(err) {}
-	    	done();  
-        (err) ? reject(err) : resolve( (allRows) ? result.rows : result.rows[0] );
-      });
-	  });
-	  
-  })
+			client.query(queryString, data, (err, result) => {
+				// if(err) {}
+				done();  
+				(err) ? reject(err) : resolve( (allRows) ? result.rows : result.rows[0] );
+			});
+		});
+	})
 }
 
 
 exports.query = query;
 
+
+exports.generateQueryString = function(updatedFields, id) {
+	var queryParts = [];
+	var values = [];
+	var columns = Object.keys(updatedFields);
+
+	queryParts.push('UPDATE ' + this.table + ' SET ');
+	// create query string from fields that should be updated
+	columns.forEach( (column, i) => {
+		queryParts.push(column + ' = $' + (i + 1) + ', ');
+		values.push(updatedFields[column]);
+	})
+
+	// join all parts of the query string, delete last substring - ', ' and add query condition 
+	values.push(id);
+
+	return {
+		queryString : queryParts.join('').slice(0, -2) + ' WHERE id = $' + (columns.length + 1) + ';',
+		values : values
+	}
+}
+
+
 // create db tables
 exports.create = () => {
-
 	query('\
 		CREATE TABLE IF NOT EXISTS users(\
 			id SERIAL PRIMARY KEY,\

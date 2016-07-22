@@ -29,21 +29,17 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieParser());
 
-app.use(session({
-  store: new pgSession({
+// sessions tweak
+var sessOptions = config.get('session');
+sessOptions.store = new pgSession({
     pg : pg,                                 
     conString : config.get('pg:url'),
     tableName : 'sessions'           
-  }),
-  secret: config.get('session:secret'),
-  resave: config.get('session:resave'),
-  cookie: config.get('session:cookie'),
-  saveUninitialized : config.get('session:saveUninitialized')
-}));
+})
+
+app.use(session(sessOptions));
 
 require(__dirname + '/routes')(app);
-
-
 
 app.use(errorHandler);
 

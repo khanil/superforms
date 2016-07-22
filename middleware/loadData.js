@@ -3,40 +3,33 @@ var forms = require('../models/form.js');
 var responses = require('../models/response.js');
 var HttpError = require('../error').HttpError;
 
-var models = {
-	user : require('../models/user'),
-	form : require('../models/form.js'),
-	response : require('../models/response.js')
+var models = [
+	require('../models/user'),
+	require('../models/form.js'),
+	require('../models/response.js')
 	// report : require('../models/reports.js')
-}
+]
 
-
+// load all required data to 'req' object
 module.exports = function(req, res, next) {
-	var queries = [];
-	var modelsNames = [];
-	determineQueriesAndModels(req, queries, modelsNames);
-	req.user = null;
-
-	Promise.all( queries.map( findOne => { return findOne() }) )
+	if(req.session.user) {
+		req.params.user_id = req.session.user;
+	}
+	// determine models which data search will be in
+	var requiredModels = models.filter( model => { 
+		return model.getIdFromParams(req.params) 
+	})
+	// async search the database
+	Promise.all(requiredModels.map( model => { 
+				return model.findOne( model.getIdFromParams(req.params) ) 
+			})
+		) // write found results into 'req' object with corresponding model names
 		.then(result => {
-			modelsNames.forEach( (name, i) => {
-				req[name] = result[i];
+			requiredModels.forEach( (model, i) => {
+				req[model.name] = result[i];
 			})
 			next();
 		})
 		['catch'](next);
 
-};
-
-// determine models which search will be in
-function determineQueriesAndModels (req, queries, modelsNames) {
-	var id;
-	
-	Object.keys(models).forEach( key => {
-		id = models[key].getID(key === 'user'? req.session : req.params);
-		if(id) {
-			queries.push(models[key].findOne.bind(null, id));
-			modelsNames.push(key);
-		}
-	})
 }

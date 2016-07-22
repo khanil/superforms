@@ -14,7 +14,7 @@ module.exports = new (winston.Logger)({
 		'error': 'red' 
 	},
 	transports: [
-		new (winston.transports.Console)({ level:'info', colorize: true} ),
+		new (winston.transports.Console)({ level:'error', colorize: true} ),
 		new (require('winston-daily-rotate-file'))({ 
 			level: 'error', 
 			filename: path.join('logs', 'errors.log'), 

@@ -28,7 +28,7 @@ exports.errorHandler = function (err, req, res, send) {
     logger.httpError(err.stack, requestData);
     res.sendHttpError(err);
   } else {
-    logger.log('error', err.stack, requestData);
+    logger.error(err.stack, requestData);
     res.sendHttpError(new HttpError(500, 'Неизвестная ошибка сервера.'));
   } 
 }

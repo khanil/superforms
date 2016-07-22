@@ -31,6 +31,7 @@ module.exports = function (app) {
 
 
   app.get('/user', checkNotAuth, users.sendSignInUpPage);
+  app.get('/user/:id/confirm_registration', loadData, users.confirmRegistration);
   app.post('/signin', checkNotAuth, users.signIn);
   app.post('/signup', checkNotAuth, users.signUp);
   app.get('/signout', users.signOut);

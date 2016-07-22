@@ -2,7 +2,7 @@
 	"port" : 3000,
 	"domain" : "http://localhost:3000/",
 	"pg" : {
-		"url" : "postgres://postgres:020199409@localhost:5432/superforms",
+		"url" : "postgres://hellmaker:justdoit@localhost:5432/superforms",
 		"poolIdleTimeout" : 30000
 	},
 	"session" : {
@@ -16,21 +16,18 @@
 		"saveUninitialized" : false
 	},
 	"hash" : {
-		"user" : {
-			"salt" : "forAlphabetRandomShuffle",
-			"length" : 8
-		},
-		"form" : {
-			"salt" : "forRandomShuffleToo",
-			"length" : 12
-		},
-		"response" : {
-			"salt" : "nextShuffle",
-			"length" : 6
-		},
-		"report" : {
-			"salt" : "oneMoreShuffle",
-			"length" : 10
+		"user" : { "salt" : "Salt is used to", "length" : 8 },
+		"form" : { "salt" : "generate unique alphabets.", "length" : 9	},
+		"response" : { "salt" : "The alphabet is also", "length" : 10 },
+		"report" : { "salt" : "shuffled based on salt.", "length" : 11 }
+	},
+	"nodemailer" : {
+		"options": {
+			"service": "Yandex", 
+			"auth": { 
+				"user": "generator.form@yandex.ru", 
+				"pass": "GeNerAtor&Form16!"
+			}
 		}
 	}
 }

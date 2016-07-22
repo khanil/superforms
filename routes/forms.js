@@ -1,6 +1,7 @@
 var config = require('../config');
 var forms = require('../models/form');
 var HttpError = require('../error').HttpError;
+var mailer = require('../libs/mailer')
 
 
 exports.sendGeneratorPage = function (req, res) {
@@ -43,11 +44,11 @@ exports.update = function(req, res, next) {
 	var id = req.form.id;
 	var updatedFields = {
 		json : req.body
-	} 
+	}
 	// Если форма сохраняется в процессе создания, то дата изменения не записывается в базу
 	// Используется для возможности сортировки по созданным / отредактированным / отправленным формам
 	if ( req.headers.referer !== config.get('domain') + 'forms/new' ) {
-		updatedFields.edited = 'current_timestamp';
+		updatedFields.edited = new Date();
 	}
 	
 	forms.update(id, updatedFields)
@@ -95,7 +96,7 @@ exports.delete = function(req, res, next) {
 exports.send = function(req, res, next) {
 	var id = req.form.id;
 	var updatedFields = JSON.parse(req.body);
-	updatedFields.sent = true;
+	updatedFields.sent = new Date();
 	delete(updatedFields.id);
 
 	if(updatedFields.recipients) {
