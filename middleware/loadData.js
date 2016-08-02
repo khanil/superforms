@@ -12,6 +12,7 @@ var models = [
 
 // load all required data to 'req' object
 module.exports = function(req, res, next) {
+	console.log('loadData starts:', new Date())
 	if(req.session.user) {
 		req.params.user_id = req.session.user;
 	}
@@ -28,6 +29,7 @@ module.exports = function(req, res, next) {
 			requiredModels.forEach( (model, i) => {
 				req[model.name] = result[i];
 			})
+			console.log('loadData ends:', new Date())
 			next();
 		})
 		['catch'](next);

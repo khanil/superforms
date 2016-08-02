@@ -40,34 +40,50 @@ exports.sendResponsesPage = function(req, res, next) {
 
 
 exports.toCSV = function (req, res, next) {
-	responses.findAll(req.form.id)
+	return responses.findAll(req.form.id)
 		.then(result => {
 			if(result) {
-				var form = req.form.json;
-				var dateFields = [];
-				var allResponses = {
+				var form = req.form.template;
+				return {
 					name : form.name,
-					// description : form.description,
-					head : form.questions.map(question => {
-							if(question.type === 'date')
-								dateFields.push(question.title);
-							return question.title;
-						})
+					description : form.description,
+					questions : getQuestionsFromTemplate(form.items),
+					responses : result
 				}
-
-				allResponses.body = result.map(responseRow => {
-					return allResponses.head.map(question => {
-						return (!~dateFields.indexOf(question)) ?
-							responseRow.json[question] :
-							(new Date(responseRow.json[question])).toLocaleString('ru', options);
-					}) 
-				})
-				var csv = conversion.json2csv(allResponses);
-				res.send(csv);
 			}
 		})
+		.then(table => conversion.json2xls(table))
+		.then(xls => {
+			res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+			res.setHeader("Content-Disposition", "attachment; filename=" + "report.xlsx");
+			res.end(xls, 'binary');
+		}) 
+		['catch'](next)
 }
 
+/** get question titles from form template (except plaseholders and images)	
+	and find out indexes of 'date' type questions **/
+function getQuestionsFromTemplate(items) {
+	questions = [];
+	for(var i = 0; i < items.length; i++) {
+		if(items[i]._type === 'question') {
+			questions.push(items[i])
+		}
+	}
+	// console.log(this.indexesOfDateQuestions)
+	return questions;
+}
+
+
+// function getAllResponses(responsesRows) {
+// 	responses = [];
+// 	* There wiil be a lot of responses rows, so I've decided 
+// 		to use 'for' instead 'forEach' because it is faster *
+// 	for(var i = 0; i < responsesRows.length; i++) {
+// 		responses.push(responsesRows[i].list)
+// 	}
+// 	return responses;
+// }
 
 exports.getOne = function(req, res, next) {
 	var response = new responses.JsonForClient(req.response);

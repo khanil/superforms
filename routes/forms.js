@@ -43,14 +43,13 @@ exports.save = function(req, res, next) {
 exports.update = function(req, res, next) {
 	var id = req.form.id;
 	var updatedFields = {
-		json : req.body
+		template : req.body
 	}
 	// Если форма сохраняется в процессе создания, то дата изменения не записывается в базу
 	// Используется для возможности сортировки по созданным / отредактированным / отправленным формам
 	if ( req.headers.referer !== config.get('domain') + 'forms/new' ) {
 		updatedFields.edited = new Date();
 	}
-	
 	forms.update(id, updatedFields)
 		.then(result => {
 			res.sendStatus(200);
@@ -63,7 +62,7 @@ exports.copy = function(req, res, next) {
 	var id = req.form.id;
 	var newName = (JSON.parse(req.body)).name;
 
-	var newForm = req.form.json;
+	var newForm = req.form.template;
 	newForm.name = newName;
 	forms.add(req.user.id, newForm)
 		.then(result => {
@@ -128,7 +127,7 @@ exports.getAll = function(req, res, next) {
 				}
 				res.json(formsList);
 			} else {
-				next(new HttpError(404, 'Данная форма не найдена.'));
+				throw new HttpError(404, 'Данная форма не найдена.');
 			}
 		})
 		['catch'](next);

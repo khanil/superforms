@@ -16,8 +16,17 @@ var loadData = require('../middleware/loadData');
 
 
 module.exports = function (app) {
-
+  app.use( (req, res, next) => {
+    console.log(req.url, req.method, new Date());
+    next()
+  })
   // For browser
+  app.get('/user/confirm_registration/:confirm_id', loadData, users.confirmRegistration);
+  app.post('/signin', checkNotAuth, users.signIn);
+  app.post('/signup', checkNotAuth, users.signUp);
+  app.get('/signout', users.signOut);
+
+
   app.get('/', require('./main.js').get);
 
   app.get('/forms/new', loadData, checkAuth, forms.sendGeneratorPage);// get form's generator page
@@ -28,13 +37,6 @@ module.exports = function (app) {
   app.get('/forms/:id/responses/:response_id', loadData, 
     checkFormByAuthor, checkResponseByForm, responses.sendResponsePage);//get one response by id 
   app.get('/forms/:id/reports', loadData, checkFormByAuthor, reports.getAllByForm);//get all reports by form id
-
-
-  app.get('/user', checkNotAuth, users.sendSignInUpPage);
-  app.get('/user/:id/confirm_registration', loadData, users.confirmRegistration);
-  app.post('/signin', checkNotAuth, users.signIn);
-  app.post('/signup', checkNotAuth, users.signUp);
-  app.get('/signout', users.signOut);
 
 
   // For XMLHttpRequest

@@ -44,6 +44,6 @@ require(__dirname + '/routes')(app);
 app.use(errorHandler);
 
 app.listen(config.get('port'), function () {
-  logger.info('Express server is listening on port ' + config.get('port'));
+  logger.log('INFO', 'Express server is listening on port ' + config.get('port'));
 });
 

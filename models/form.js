@@ -16,11 +16,11 @@ function Form() {
 
 
 	this.add = function (user, form) {
-		return db.query("INSERT INTO forms(user_id, json) values($1, $2) RETURNING id;", [user, form]);
+		return db.query("INSERT INTO forms(user_id, template) values($1, $2) RETURNING id;", [user, form]);
 	}
 
 	this.update = function (id, updatedFields) {
-		var result = db.generateQueryString.call(self, updatedFields, id);
+		var result = db.generateUpdateQuery.call(self, updatedFields, id);
 		return db.query(result.queryString, result.values);
 	}
 
@@ -38,20 +38,20 @@ function Form() {
 			null;
 	}
 
-	this.JsonForClient = function (formRow, withQuestions) {
-		this.id = hashids.encode(formRow.id);
-		this.name = formRow.json.name;
-		this.description = formRow.json.description;
-		this.type = formRow.json.type;
-		this.created = formRow.created;
-		this.edited = formRow.edited;
-		this.sent = formRow.sent;
-		this.expires = formRow.expires;
-		this.expireDate = formRow.expiredate;
-		this.allowRefill = formRow.allowrefill;
-		if(withQuestions) {
-			this.questions = formRow.json.questions;
-		}
+	this.JsonForClient = function (form, withQuestions) {
+		this.id = hashids.encode(form.id);
+		this.name = form.template.name;
+		this.description = form.template.description;
+		this.type = form.template.type;
+		this.created = form.created;
+		this.edited = form.edited;
+		this.sent = form.sent;
+		this.expires = form.expires;
+		this.expireDate = form.expiredate;
+		this.allowRefill = form.allowrefill;
+		// if(withQuestions) {
+		// 	this.questions = form.template.questions;
+		// }
 	}
 
 	var self = this;

@@ -81,6 +81,7 @@
 	}
 
 	function checkData(user) {
+		console.log(user);
 		var errorText;
 
 		if(!user.email) 
@@ -148,7 +149,7 @@
 	}
 
 	function checkEmail(email) {
-		re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+		re = /@/;
 		return re.test(email);
 	}
 

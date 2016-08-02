@@ -5,31 +5,67 @@ var logger = require('../libs/logger');
 
 // HTTP error constructor
 function HttpError(status, message) {
-	Error.apply(this, arguments);
 	Error.captureStackTrace(this, HttpError);
-
-	this.status = status;
-	this.message = message || http.STATUS_CODES[status] || "Error";
+    this.status = status,
+    this.message = message || http.STATUS_CODES[status] || "HTTP error"
 }
 
-util.inherits(HttpError, Error);
-HttpError.prototype.name = "HttpError";
+function SmtpError(message) {
+    Error.captureStackTrace(this, HttpError);
+    this.message = message || "SMTP error";
+}
 
-exports.HttpError = HttpError;
+function DatabaseError(message) {
+    Error.captureStackTrace(this, HttpError);
+    this.message = message || "Database error";
+}
 
+function createCustonError(MyConstructor, name) {
+    MyConstructor.prototype.name = name;
+    MyConstructor.prototype = Object.create(Error.prototype);
+    MyConstructor.prototype.constructor = MyConstructor;
+    return MyConstructor;
+} 
+
+exports.HttpError = createCustonError(HttpError, "HttpError");
+exports.SmtpError = createCustonError(SmtpError, "SmtpError");
+exports.DatabaseError = createCustonError(DatabaseError, "DatabaseError");
+    
 
 // main error handler 
 exports.errorHandler = function (err, req, res, send) {
-	var requestData = { method: req.method, url: req.url };
-  if(typeof(err) === 'number') {
-    err = new HttpError(err);
-  } 
-  if(err instanceof HttpError) {
-    logger.httpError(err.stack, requestData);
-    res.sendHttpError(err);
-  } else {
-    logger.error(err.stack, requestData);
-    res.sendHttpError(new HttpError(500, 'Неизвестная ошибка сервера.'));
-  } 
+    // console.log('error handler log:\n', err, err.constructor);
+    var requestData = { method: req.method, url: req.url };
+    var level;
+
+    if(typeof(err) === 'number') {
+        err = new HttpError(err);
+    } 
+
+    // an equivalent instanceof operator
+    switch(err.constructor) {
+        // HTTP error
+        case HttpError:
+            level = 'WARN';
+            err = { httpResponse: err }
+            break;
+        // Databse error
+        case DatabaseError:
+            if(err.constraint === 'users_email_key') {
+                level = 'WARN'
+                err.httpResponse = new HttpError(422, 'Вы уже зарегистрированы. Пожалуйста, авторизуйтесь.')
+            }
+            break;
+        // SMTP protocol error (email sending failed)
+        case SmtpError:
+            if(err.errors.some( error => error.code === 'ENOTFOUND' || error.code === 'EMESSAGE' )) {
+                level = 'WARN'
+                err.httpResponse = new HttpError(422, 'Некорректный адрес электронной почты.')
+            }
+            break;
+    }
+
+    logger.log(level || 'ERROR', err, requestData);
+    res.sendHttpError(err.httpResponse || new HttpError(500, 'Неизвестная ошибка сервера'));
 }
 

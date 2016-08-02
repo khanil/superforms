@@ -15,7 +15,7 @@ function Response() {
 	}
 
 	this.add = function (answers, formID) {
-	  return db.query("INSERT INTO responses(json, form_id) values($1, $2) RETURNING id", [answers, formID]);
+	  return db.query("INSERT INTO responses(list, form_id) values($1, $2) RETURNING id", [answers, formID]);
 	}
 
 	this.getIdFromParams = function (params) {
@@ -29,11 +29,10 @@ function Response() {
 	}
 
 
-	this.JsonForClient = function JsonForClient(responseRow) {
-		this.id = hashids.encode(responseRow.id);
-		this.author = responseRow.json["Автор"];
-		this.received = responseRow.received;
-		this.answers = responseRow.json;
+	var JsonForClient = function JsonForClient(responses) {
+		this.id = hashids.encode(responses.id);
+		this.received = responses.received;
+		this.answers = responses.list;
 	}
 
 	// exports.JsonForClient = function JsonForClient(questions, responseRow) {

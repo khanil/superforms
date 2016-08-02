@@ -1,6 +1,7 @@
 var pg = require('pg');
 var config = require('../config');
 var connectionString = process.env.DATABASE_URL || config.get('pg:url');
+var DatabaseError = require('../error').DatabaseError;
 var logger = require('../libs/logger');
 
 
@@ -10,17 +11,18 @@ function query(queryString, data, allRows) {
 	// show query to db
 	// console.log('NEW QUERY : ' + queryString)
 	return new Promise((resolve, reject) => {
-
 		pg.connect(connectionString, (err, client, done) => {
 			if(err) { reject(err); }
-
-			// show connection pool
-			// console.log('all: ', pg.pools.all['"postgres://hellmaker:justdoit@localhost:5432/superforms"'].getPoolSize());
-
+			// uncomment to show connection pool
+			// console.log('connection pool: ', pg.pools.all['"postgres://hellmaker:justdoit@localhost:5432/superforms"'].getPoolSize());
 			client.query(queryString, data, (err, result) => {
-				// if(err) {}
-				done();  
-				(err) ? reject(err) : resolve( (allRows) ? result.rows : result.rows[0] );
+				done(); 
+				if(err) {
+					err.__proto__ = DatabaseError.prototype;
+					reject(err);
+				} else {
+					resolve( (allRows) ? result.rows : result.rows[0] );
+				}
 			});
 		});
 	})
@@ -30,7 +32,7 @@ function query(queryString, data, allRows) {
 exports.query = query;
 
 
-exports.generateQueryString = function(updatedFields, id) {
+exports.generateUpdateQuery = function(updatedFields, id) {
 	var queryParts = [];
 	var values = [];
 	var columns = Object.keys(updatedFields);
@@ -41,10 +43,8 @@ exports.generateQueryString = function(updatedFields, id) {
 		queryParts.push(column + ' = $' + (i + 1) + ', ');
 		values.push(updatedFields[column]);
 	})
-
 	// join all parts of the query string, delete last substring - ', ' and add query condition 
 	values.push(id);
-
 	return {
 		queryString : queryParts.join('').slice(0, -2) + ' WHERE id = $' + (columns.length + 1) + ';',
 		values : values
@@ -54,57 +54,100 @@ exports.generateQueryString = function(updatedFields, id) {
 
 // create db tables
 exports.create = () => {
-	query('\
+	Promise.all([
+		createTables(),
+		createSessionsTable(),
+		createStatusTableAndFill()
+	])
+	['catch'](logger.ERROR);
+}
+
+
+
+function createTables() {
+	return query(
+		'CREATE TABLE IF NOT EXISTS organizations(\
+			id SERIAL PRIMARY KEY,\
+			name VARCHAR(255) UNIQUE\
+		);\
+		\
 		CREATE TABLE IF NOT EXISTS users(\
 			id SERIAL PRIMARY KEY,\
-			email VARCHAR(60) UNIQUE,\
-			password VARCHAR(60),\
-			registered TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,\
-			status VARCHAR(10)\
+			email VARCHAR(255) UNIQUE,\
+			password VARCHAR(60)\
 		);\
+		\
+		CREATE TABLE IF NOT EXISTS positions(\
+			id SERIAL PRIMARY KEY,\
+			name VARCHAR(255) UNIQUE\
+		);\
+		\
+		CREATE TABLE IF NOT EXISTS user_positions(\
+			user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,\
+			organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,\
+			position_id INTEGER REFERENCES positions(id) ON DELETE CASCADE\
+		);\
+		\
+		CREATE TABLE IF NOT EXISTS user_status_logs(\
+			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,\
+			status_id INTEGER NOT NULL REFERENCES status(id) ON DELETE RESTRICT,\
+			changed TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
+		);\
+		\
 		CREATE TABLE IF NOT EXISTS forms(\
 			id SERIAL PRIMARY KEY,\
 			user_id SERIAL REFERENCES users ON DELETE CASCADE,\
-			json JSON NOT NULL,\
-			recipients JSON,\
+			template JSON NOT NULL,\
 			created TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,\
 			edited TIMESTAMP WITH TIME ZONE,\
 			sent TIMESTAMP WITH TIME ZONE,\
 			expires TIMESTAMP WITH TIME ZONE,\
 			allowrefill BOOLEAN DEFAULT FALSE\
 		);\
+		\
 		CREATE TABLE IF NOT EXISTS responses(\
 			id SERIAL PRIMARY KEY,\
-			form_id SERIAL REFERENCES forms ON DELETE CASCADE,\
-			json JSON NOT NULL,\
-			received TIMESTAMP(6) WITH TIME ZONE DEFAULT current_timestamp\
+			form_id INTEGER REFERENCES forms ON DELETE CASCADE,\
+			list JSON NOT NULL,\
+			received TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
 		);\
+		\
 		CREATE TABLE IF NOT EXISTS reports(\
 			id SERIAL PRIMARY KEY,\
 			form_id SERIAL REFERENCES forms ON DELETE CASCADE,\
-			json JSON NOT NULL,\
-			created TIMESTAMP(6) WITH TIME ZONE DEFAULT current_timestamp\
-		);'
-	)
-	['catch'](err => {
-		logger.error('Database query: ' + queryString + '\nQuery error: ', err);
-	})
+			template JSON NOT NULL,\
+			created TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
+		);')
+}
 
-	query('SELECT * FROM sessions;')
-		["catch"](err => {
-			logger.info('creating "sessions" table...');
-			query('\
-				CREATE TABLE IF NOT EXISTS "sessions" (\
-			  	"sid" varchar NOT NULL COLLATE "default",\
-					"sess" JSON NOT NULL,\
-					"expire" TIMESTAMP(6) NOT NULL\
-				) WITH (OIDS=FALSE);\
-				ALTER TABLE "sessions" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;'
-			)
-			.then(() => { logger.info('"sessions" table has been created.') })
-			['catch'](err => {
-				logger.error('Database query: ' + queryString + '\nQuery error: ', err);
-			})
-		})
-		
+
+function createStatusTableAndFill() {
+	return query('\
+			CREATE TABLE status(\
+				id SERIAL PRIMARY KEY,\
+				name VARCHAR(255) UNIQUE\
+			);'
+		)
+		.then( () => query("INSERT INTO status(name) VALUES('waiting'), ('active'), ('banned');"))
+		.then( () => { logger.log('INFO', '"status" table has been created and filled.') })
+		['catch']( (err) => {} )
+}
+
+
+function createSessionsTable() {
+	return query(
+			'CREATE TABLE "sessions" (\
+				"sid" varchar NOT NULL COLLATE "default",\
+				"sess" JSON NOT NULL,\
+				"expire" TIMESTAMP(6) NOT NULL\
+			) WITH (OIDS=FALSE);'
+		)
+		.then( () => query(
+			'ALTER TABLE "sessions"\
+			ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid")\
+			NOT DEFERRABLE INITIALLY IMMEDIATE;')
+		)
+
+		.then( () => { logger.log('INFO', '"sessions" table has been created.') })
+		['catch']( () => {} );
 }
