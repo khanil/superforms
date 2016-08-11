@@ -26,9 +26,15 @@
 		"options": {
 			"service": "Yandex", 
 			"auth": { 
-				"user": "generator.form@yandex.ru", 
-				"pass": "GeNerAtor&Form16!"
+				"user": "", 
+				"pass": ""
 			}
 		}
+	},
+	"multer" : {
+		"destination" : "./public/uploads",
+		"limits" : { "fileSize": 4096 },
+		"fields" : "files",
+		"maxCount" : 5
 	}
 }

@@ -7,11 +7,15 @@ var hashids = new Hashids(config.get("hash:response:salt"), config.get("hash:res
 function Response() {
 
 	this.findOne = function (id) {
-	  return db.query('SELECT * FROM responses WHERE id = $1', [id]);
+		return db.query('SELECT * FROM responses WHERE id = $1', [id]);
 	}
 
 	this.findAll = function (formID) {
-	  return db.query('SELECT * FROM responses WHERE form_id = $1', [formID], true);
+		return db.query('SELECT * FROM responses WHERE form_id = $1', [formID], true);
+	}
+
+	this.getResponsesList = function (formID) {
+		return db.query('SELECT list FROM responses WHERE form_id = $1', [formID], true);
 	}
 
 	this.add = function (answers, formID) {

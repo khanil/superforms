@@ -13,4 +13,18 @@ if (!Object.values) {
 	};
 }
 
+Object.renameProperty = function (oldName, newName) {
+	// console.log('start')
+	// Do nothing if the names are the same
+	if (oldName == newName) {
+		return this;
+	}
+	// Check for the old property name to avoid a ReferenceError in strict mode.
+	if (this.hasOwnProperty(oldName)) {
+		this[newName] = this[oldName];
+		delete this[oldName];
+	}
+	return this;
+}
+
 module.exports = Object;

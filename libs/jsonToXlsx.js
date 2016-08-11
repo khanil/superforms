@@ -3,7 +3,7 @@ var nodeExcel = require('excel-export');
 
 
 //prepare json to be in the correct format for excel-export
-exports.json2xls = json => {
+module.exports = function jsonToXlsx(json) {
 	try {
 		var result = prepare(json);
 		console.log('result: ', result);
@@ -46,7 +46,6 @@ function Column(question) {
 
 			case 'date':
 				self.type = 'date';
-				self.width = 128.7109375;
 				self.customWidth = "1";
 				self.beforeCellWrite = (row, cellData, eOpt) => {
 					if(!cellData){
@@ -59,7 +58,6 @@ function Column(question) {
 
 			default:
 				self.type = 'string';
-				self.width = 36.7109375;
 				self.beforeCellWrite = (row, cellData, eOpt) => {
 					return cellData.replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]/g,'');
 				}

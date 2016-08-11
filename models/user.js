@@ -20,21 +20,25 @@ function User() {
 
 	this.findOne = function (id) {
 		return db.query(
-			'SELECT users.*, status.name AS status, status.id AS status_id, logs.changed AS status_changed\
+			'SELECT users.*, positions.name AS role, status.name AS status, status.id AS status_id, logs.changed AS status_changed\
 			FROM user_status_logs AS logs\
 			JOIN users ON users.id = logs.user_id\
 			JOIN status ON status.id = logs.status_id\
+			JOIN user_position role ON role.user_id = logs.user_id\
+			JOIN positions ON positions.id = role.position_id\
 			WHERE logs.changed = (SELECT MAX(changed) FROM user_status_logs logs WHERE logs.user_id = $1);', 
 			[id]);
 	}
 
 
-	this.findAll = function () {
+	this.findAll = () => {
 		return db.query(
-			'SELECT users.*, status.name AS status, status.id AS status_id, logs.changed AS status_changed\
+			'SELECT users.id, users.email, positions.name AS role, status.name AS status, logs.changed AS status_changed\
 			FROM user_status_logs AS logs\
 			JOIN users ON users.id = logs.user_id\
 			JOIN status ON status.id = logs.status_id\
+			JOIN user_position role ON role.user_id = logs.user_id\
+			JOIN positions ON positions.id = role.position_id\
 			WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs logs GROUP BY user_id);', 
 			[], true);
 	}
@@ -45,11 +49,14 @@ function User() {
 	// 		WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs GROUP BY user_id)
 	// 		AND users.id = logs.user_id AND logs.status_id = status.id;
 
-
 	this.add = function (user) {
 		var salt = bcrypt.genSaltSync(10);
 		var hash = bcrypt.hashSync(user.password, salt);
 		return db.query('INSERT INTO users(email, password) VALUES($1, $2) RETURNING id;', [user.email, hash]);
+	}
+
+	this.addRole = (user_id) => {
+		return db.query('INSERT INTO user_position(user_id) VALUES($1) RETURNING user_id AS id;', [user_id]);
 	}
 
 	this.changeStatus = function (id, status) {
@@ -61,8 +68,8 @@ function User() {
 		)
 	}
 
-	this.update = function (id, updatedFields) {
-		var result = db.generateUpdateQuery.call(self, updatedFields, id);
+	this.update = (id, updatedFields) => {
+		var result = db.generateUpdateQuery.call(this, updatedFields, id);
 		return db.query(result.queryString, result.values);
 	}
 

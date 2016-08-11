@@ -74,6 +74,12 @@ exports.copy = function(req, res, next) {
 }
 
 
+exports.uploadFiles = (req, res, next) => {
+	console.log(req.body)
+	res.json(req.files);
+}
+
+
 exports.delete = function(req, res, next) {
 	var id = req.form.id;
 
@@ -93,39 +99,48 @@ exports.delete = function(req, res, next) {
 
 
 exports.send = function(req, res, next) {
-	var id = req.form.id;
-	var updatedFields = JSON.parse(req.body);
-	updatedFields.sent = new Date();
-	delete(updatedFields.id);
-
-	if(updatedFields.recipients) {
-		// отправка почтой не работает
-		return next(new HttpError(500, 'Отправка почтой не поддерживается в данный момент. Пожалуйста, воспользуйтесь отправкой по ссылке.'));
-	}
-	// изменение статуса
-	forms.update(id, updatedFields)
-		.then(result => {
-			res.sendStatus(200);
+	var options = JSON.parse(req.body);
+	// 
+	Promise.resolve()
+		.then( () => {
+			if(options.recipients) {
+				options.hash = req.params.id;
+				return mailer.send(options)
+			}
 		})
+		.then( () => {
+			['hash', 'recipients', 'topic', 'message'].forEach(key => delete(options[key]))
+			options.id = req.form.id;
+			options.sent = new Date();
+			console.log(options)
+			forms.update(id, options)
+		})
+		.then( () => {
+			
+		})
+		.then(result => {
+				res.sendStatus(200);
+			})
 		['catch'](next);
 }
 
 
 exports.getOne = function(req, res, next) {
-	res.json(new forms.JsonForClient(req.form, true));
+	forms.modifyForClient(req.form)
+	res.json(req.form);
 }
 
 
 exports.getAll = function(req, res, next) {
 	forms.findAll(req.user.id)
-		.then(result => {
-			if(result) {
-				var formsList = [], i;
+		.then(foundForms => {
+			if(foundForms) {
+				var formsList = [];
 				
-				for(i = 0; i < result.length; i++) {
-					formsList[i] = new forms.JsonForClient( result[i] );
+				for(let i = 0; i < foundForms.length; i++) {
+					forms.modifyForClient( foundForms[i] );
 				}
-				res.json(formsList);
+				res.json(foundForms);
 			} else {
 				throw new HttpError(404, 'Данная форма не найдена.');
 			}

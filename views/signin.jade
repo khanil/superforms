@@ -1,0 +1,19 @@
+include includes/head
+		title Вход | SuperForms
+	body.no-header
+		#sign-up-container.container
+			div.col-md-3
+			div.col-md-6
+				h3 Авторизация
+
+				#error.alert.alert-danger.hide
+					a(href="#", class="close", data-dismiss="alert", aria-label="close") ×
+					p
+				div: input#login.form-control(type='text' placeholder="Электронная почта" required)
+				div: input#password.form-control(type='password' placeholder="Пароль" required)
+
+				button#submit.btn.btn-primary.btn-block Войти
+
+			div.col-md-3
+
+		script(type="text/javascript", src="/scripts/signin.js")

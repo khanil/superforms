@@ -209,12 +209,13 @@ table .form-group {
   color: #286090;
 }
 
-ul.nav.nav-tabs {
+#login,
+#password {
   margin-bottom: 15px;
 }
 
-ul.nav.nav-tabs li {
-  width: 50%;
-  text-align: center;
-  font-size: 16px;
+#reg .reg {
+  text-overflow: ellipsis;
+  padding-left: 0;
+  padding-right: 5px;
 }

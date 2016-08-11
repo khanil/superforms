@@ -1,7 +1,7 @@
 var forms = require('../models/form');
 var responses = require('../models/response');
 var HttpError = require('../error').HttpError;
-var conversion = require('../libs/conversion');
+var jsonToXlsx = require('../libs/jsonToXlsx');
 
 var path = require('path');
 
@@ -39,8 +39,8 @@ exports.sendResponsesPage = function(req, res, next) {
 };
 
 
-exports.toCSV = function (req, res, next) {
-	return responses.findAll(req.form.id)
+exports.getXlsx = function (req, res, next) {
+	return responses.getResponsesList(req.form.id)
 		.then(result => {
 			if(result) {
 				var form = req.form.template;
@@ -52,7 +52,7 @@ exports.toCSV = function (req, res, next) {
 				}
 			}
 		})
-		.then(table => conversion.json2xls(table))
+		.then(table => conversion.jsonToXlsx(table))
 		.then(xls => {
 			res.setHeader('Content-Type', 'application/vnd.openxmlformats');
 			res.setHeader("Content-Disposition", "attachment; filename=" + "report.xlsx");

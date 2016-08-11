@@ -1,8 +1,9 @@
 var config = require('../config');
-var db = require('./db.js')
+var db = require('./db')
 var Hashids = require("hashids");
 var hashids = new Hashids(config.get("hash:form:salt"), config.get("hash:form:length"));
-
+var Object = require('../libs/improvedObject') 
+var user = require('./user')
 
 function Form() {
 
@@ -19,8 +20,8 @@ function Form() {
 		return db.query("INSERT INTO forms(user_id, template) values($1, $2) RETURNING id;", [user, form]);
 	}
 
-	this.update = function (id, updatedFields) {
-		var result = db.generateUpdateQuery.call(self, updatedFields, id);
+	this.update = (id, updatedFields) => {
+		var result = db.generateUpdateQuery.call(this, updatedFields, id);
 		return db.query(result.queryString, result.values);
 	}
 
@@ -38,23 +39,13 @@ function Form() {
 			null;
 	}
 
-	this.JsonForClient = function (form, withQuestions) {
-		this.id = hashids.encode(form.id);
-		this.name = form.template.name;
-		this.description = form.template.description;
-		this.type = form.template.type;
-		this.created = form.created;
-		this.edited = form.edited;
-		this.sent = form.sent;
-		this.expires = form.expires;
-		this.expireDate = form.expiredate;
-		this.allowRefill = form.allowrefill;
-		// if(withQuestions) {
-		// 	this.questions = form.template.questions;
-		// }
+	this.modifyForClient = function (form, withQuestions) {
+		form.id = hashids.encode(form.id);
+		form.user_id = user.getHash(form.user_id);
+		Object.renameProperty.call(form, 'allowrefill', 'allowRefill')
+		Object.renameProperty.call(form, 'template', 'scheme')
 	}
 
-	var self = this;
 	this.table = 'forms';
 	this.name = 'form';
 	
