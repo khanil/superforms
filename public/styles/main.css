@@ -219,3 +219,7 @@ table .form-group {
   padding-left: 0;
   padding-right: 5px;
 }
+
+.Select-menu-outer {
+  z-index: 4 !important;
+}

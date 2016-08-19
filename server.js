@@ -17,15 +17,13 @@ var logger = require('./libs/logger');
 require(__dirname + '/models/db').create();
 
 
-app.use('/', express.static(path.join(__dirname, 'public')));
-
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 
 app.use(require('./middleware/sendHttpError'));
 
 app.use(bodyParser.text());
-app.use(bodyParser.urlencoded({extended: true}));
+// app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieParser());
 
@@ -40,7 +38,7 @@ sessOptions.store = new pgSession({
 app.use(session(sessOptions));
 
 require(__dirname + '/routes')(app);
-
+app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(errorHandler);
 
 app.listen(config.get('port'), function () {

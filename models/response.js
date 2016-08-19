@@ -50,11 +50,15 @@ function Response() {
 	//  	})
 	// }
 
-	this.jsonForClient = function (questions, responseRow) {
-		// responseRow.json.id = hashids.encode(responseRow.id);
-		// return responseRow.json;
-		return new JsonForClient(questions, responseRow);
-	}
+	// this.modifyForClient = function (questions, responseRow) {
+	// 	form.id = hashids.encode(form.id);
+	// 	form.user_id = user.getHash(form.user_id);
+	// 	Object.renameProperty.call(form, 'allowrefill', 'allowRefill')
+	// 	Object.renameProperty.call(form, 'template', 'scheme')
+	// 	// responseRow.json.id = hashids.encode(responseRow.id);
+	// 	// return responseRow.json;
+	// 	return new JsonForClient(questions, responseRow);
+	// }
 
 	var self = this;
 	this.table = 'responses';

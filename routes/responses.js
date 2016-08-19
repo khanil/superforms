@@ -52,7 +52,7 @@ exports.getXlsx = function (req, res, next) {
 				}
 			}
 		})
-		.then(table => conversion.jsonToXlsx(table))
+		.then(table => jsonToXlsx(table))
 		.then(xls => {
 			res.setHeader('Content-Type', 'application/vnd.openxmlformats');
 			res.setHeader("Content-Disposition", "attachment; filename=" + "report.xlsx");
@@ -93,26 +93,25 @@ exports.getOne = function(req, res, next) {
 
 exports.getAll = function(req, res, next) {
 	var data = {};
-	data.form = new forms.JsonForClient(req.form, true);
-
+	
+	// console.log(req.form.id)
 	responses.findAll(req.form.id)
-		.then(result => {
-			if(result) {
-				data.responses = [];
-				for(i = 0; i < result.length; i++) {
-					data.responses[i] = result[i].json;
-					data.responses[i].id = responses.getHash(result[i].id);
-				}
-				res.json(data);
+		.then(foundResponses => {
+			data.responses = [];
+			for(i = 0; i < foundResponses.length; i++) {
+				data.responses[i] = foundResponses[i].list;
+				data.responses[i].id = responses.getHash(foundResponses[i].id);
 			}
+			data.form = forms.modifyForClient(req.form);
+			res.json(data);
 		})
 		['catch'](next);
 }
 
 
 var options = {
-  year: 'numeric',
-  month: 'numeric',
-  day: 'numeric',
-  timezone: 'UTC',
+	year: 'numeric',
+	month: 'numeric',
+	day: 'numeric',
+	timezone: 'UTC',
 };

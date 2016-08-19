@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var multer = require('multer');
+// var multer = require('multer');
 var config = require('../config');
 // middlewares
 var checkAuth = require('../middleware/checkAuth');
@@ -35,7 +35,7 @@ module.exports = function (app) {
 		next()
 	})
 	
-	// app.get('/test', (req, res, next) => { res.render('test') } )
+	app.get('/test', (req, res, next) => { res.render('test') } )
 	// app.get('/post', (req, res, next) => {
 	// 	var string = req.body
 	// 	var regex = /^data:.+\/(.+);base64,(.*)$/;
@@ -63,6 +63,7 @@ module.exports = function (app) {
 	app.get('/forms/:id/edit', loadData, checkFormByAuthor, forms.sendEditPage);// send form's edit page for author
 	app.get('/forms/:id/preview', loadData, checkFormByAuthor, forms.sendPreviewPage);
 	app.get('/forms/:id', loadData, permissionToFill, forms.sendInterviewPage);// send 'interview' page
+	app.get('/success', (req, res, next) => { res.render('message', { title: 'Спасибо за Ваш ответ!', text: 'Форма успешно заполнена.'} )})
 	app.get('/forms/:id/responses', loadData, checkFormByAuthor, responses.sendResponsesPage);//send responses page
 	app.get('/forms/:id/responses/:response_id', loadData, 
 		checkFormByAuthor, checkResponseByForm, responses.sendResponsePage);//get one response by id 

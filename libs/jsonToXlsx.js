@@ -59,7 +59,9 @@ function Column(question) {
 			default:
 				self.type = 'string';
 				self.beforeCellWrite = (row, cellData, eOpt) => {
-					return cellData.replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]/g,'');
+					return cellData? 
+						cellData.replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]/g,''):
+						''
 				}
 		}
 	})()

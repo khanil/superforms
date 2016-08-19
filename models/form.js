@@ -39,11 +39,12 @@ function Form() {
 			null;
 	}
 
-	this.modifyForClient = function (form, withQuestions) {
+	this.modifyForClient = function (form) {
 		form.id = hashids.encode(form.id);
 		form.user_id = user.getHash(form.user_id);
 		Object.renameProperty.call(form, 'allowrefill', 'allowRefill')
 		Object.renameProperty.call(form, 'template', 'scheme')
+		return form;
 	}
 
 	this.table = 'forms';

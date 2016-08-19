@@ -113,7 +113,7 @@ exports.send = function(req, res, next) {
 			options.id = req.form.id;
 			options.sent = new Date();
 			console.log(options)
-			forms.update(id, options)
+			forms.update(req.form.id, options)
 		})
 		.then( () => {
 			
@@ -126,8 +126,8 @@ exports.send = function(req, res, next) {
 
 
 exports.getOne = function(req, res, next) {
-	forms.modifyForClient(req.form)
-	res.json(req.form);
+	
+	res.json( forms.modifyForClient(req.form) );
 }
 
 
@@ -137,9 +137,7 @@ exports.getAll = function(req, res, next) {
 			if(foundForms) {
 				var formsList = [];
 				
-				for(let i = 0; i < foundForms.length; i++) {
-					forms.modifyForClient( foundForms[i] );
-				}
+				foundForms.forEach(forms.modifyForClient)
 				res.json(foundForms);
 			} else {
 				throw new HttpError(404, 'Данная форма не найдена.');
