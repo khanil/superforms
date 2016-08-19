@@ -1,0 +1,17 @@
+include includes/head
+	head
+		title #{title} | SuperForms
+		link(rel="stylesheet", href="/styles/react-widgets.css")
+	body
+		include includes/header
+		div#root.container
+		script#info(type="application/json").
+			{
+				"type": "#{type}",
+				"getUrl": "/api/forms/#{id}",
+				"createUrl": "/api/forms",
+				"updateUrl": "/api/forms/#{id}/update",
+				"previewUrl": "/forms/#{id}/preview",
+				"sendUrl": "/api/forms/#{id}/send"
+			}
+		script(type="text/javascript", src="/scripts/generation.js")

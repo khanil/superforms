@@ -1,0 +1,22 @@
+include includes/head
+		title Просмотр ответа| SuperForms
+		link(rel="stylesheet", href="/styles/react-widgets.css")
+	body
+		nav#page-header.navbar.navbar-default.navbar-fixed-top
+			.container
+				.row
+					.col-md-2.col-lg-2.page-header-return
+						a.back(href='/forms/#{id}/responses')
+							i.glyphicon.glyphicon-menu-left(aria-hidden='true')
+							// TODO: вставлять наименование страницы
+							span все ответы
+					#header-root.col-md-10.col-lg-10
+						// Здесь динамичное содержимое шапки
+		div#root.container
+		script#info(type="application/json").
+			{
+				"type": "ANSWER_REVIEW",
+				"getUrl": "/api/forms/#{id}",
+				"responseUrl": "/api/forms/#{id}/responses/#{response_id}"
+			}
+		script(type="text/javascript", src="/scripts/interview.js")

@@ -1,0 +1,162 @@
+var pg = require('pg');
+var config = require('../config');
+var connectionString = process.env.DATABASE_URL || config.get('pg:url');
+var DatabaseError = require('../error').DatabaseError;
+var logger = require('../libs/logger');
+
+
+pg.defaults.poolIdleTimeout = config.get('pg:poolIdleTimeout');
+
+function query(queryString, data, allRows) {
+	// show query to db
+	// console.log('NEW QUERY : ' + queryString)
+	return new Promise((resolve, reject) => {
+		pg.connect(connectionString, (err, client, done) => {
+			if(err) { reject(err); }
+			// uncomment to show connection pool
+			// console.log('connection pool: ', pg.pools.all['"postgres://hellmaker:justdoit@localhost:5432/superforms"'].getPoolSize());
+			client.query(queryString, data, (err, result) => {
+				done(); 
+				if(err) {
+					err.__proto__ = DatabaseError.prototype;
+					reject(err);
+				} else {
+					resolve( (allRows) ? result.rows : result.rows[0] );
+				}
+			});
+		});
+	})
+}
+
+
+exports.query = query;
+
+
+exports.generateUpdateQuery = function(updatedFields, id) {
+	var queryParts = [];
+	var values = [];
+	var columns = Object.keys(updatedFields);
+
+	queryParts.push('UPDATE ' + this.table + ' SET ');
+	// create query string from fields that should be updated
+	columns.forEach( (column, i) => {
+		queryParts.push(column + ' = $' + (i + 1) + ', ');
+		values.push(updatedFields[column]);
+	})
+	// join all parts of the query string, delete last substring - ', ' and add query condition 
+	values.push(id);
+	return {
+		queryString : queryParts.join('').slice(0, -2) + ' WHERE id = $' + (columns.length + 1) + ';',
+		values : values
+	}
+}
+
+
+// create db tables
+exports.create = () => {
+	Promise.all([
+		createTables(),
+		createSessionsTable(),
+		createStatusTableAndFill(),
+		createPosisionsTableAndFill()
+	])
+	['catch'](logger.ERROR);
+}
+
+
+
+function createTables() {
+	return query(
+		'CREATE TABLE IF NOT EXISTS organizations(\
+			id SERIAL PRIMARY KEY,\
+			name VARCHAR(255) UNIQUE\
+		);\
+		\
+		CREATE TABLE IF NOT EXISTS users(\
+			id SERIAL PRIMARY KEY,\
+			email VARCHAR(255) UNIQUE,\
+			password VARCHAR(60)\
+		);\
+		\
+		CREATE TABLE IF NOT EXISTS user_position(\
+			user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,\
+			organization_id INTEGER DEFAULT NULL REFERENCES organizations(id) ON DELETE CASCADE,\
+			position_id INTEGER DEFAULT 3 REFERENCES positions(id) ON DELETE CASCADE\
+		);\
+		\
+		CREATE TABLE IF NOT EXISTS user_status_logs(\
+			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,\
+			status_id INTEGER NOT NULL REFERENCES status(id) ON DELETE RESTRICT,\
+			changed TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
+		);\
+		\
+		CREATE TABLE IF NOT EXISTS forms(\
+			id SERIAL PRIMARY KEY,\
+			user_id SERIAL REFERENCES users ON DELETE CASCADE,\
+			template JSON NOT NULL,\
+			created TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,\
+			edited TIMESTAMP WITH TIME ZONE,\
+			sent TIMESTAMP WITH TIME ZONE,\
+			expires TIMESTAMP WITH TIME ZONE,\
+			allowrefill BOOLEAN DEFAULT FALSE\
+		);\
+		\
+		CREATE TABLE IF NOT EXISTS responses(\
+			id SERIAL PRIMARY KEY,\
+			form_id INTEGER REFERENCES forms ON DELETE CASCADE,\
+			list JSON NOT NULL,\
+			received TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
+		);\
+		\
+		CREATE TABLE IF NOT EXISTS reports(\
+			id SERIAL PRIMARY KEY,\
+			form_id SERIAL REFERENCES forms ON DELETE CASCADE,\
+			template JSON NOT NULL,\
+			created TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
+		);')
+}
+
+
+function createStatusTableAndFill() {
+	return query('\
+			CREATE TABLE status(\
+				id SERIAL PRIMARY KEY,\
+				name VARCHAR(255) UNIQUE\
+			);'
+		)
+		.then( () => query("INSERT INTO status(name) VALUES('waiting'), ('active'), ('banned');"))
+		.then( () => { logger.log('INFO', '"status" table has been created and filled.') })
+		['catch']( (err) => {} )
+}
+
+
+function createPosisionsTableAndFill() {
+	return query('\
+			CREATE TABLE IF NOT EXISTS positions(\
+				id SERIAL PRIMARY KEY,\
+				name VARCHAR(255) UNIQUE\
+			);'
+		)
+		.then( () => query("INSERT INTO positions(name) VALUES('root'), ('admin'), ('employee');"))
+		.then( () => { logger.log('INFO', '"positions" table has been created and filled.') })
+		['catch']( (err) => {} )
+}
+
+
+function createSessionsTable() {
+	return query(
+			'CREATE TABLE "sessions" (\
+				"sid" varchar NOT NULL COLLATE "default",\
+				"sess" JSON NOT NULL,\
+				"expire" TIMESTAMP(6) NOT NULL\
+			) WITH (OIDS=FALSE);'
+		)
+		.then( () => query(
+			'ALTER TABLE "sessions"\
+			ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid")\
+			NOT DEFERRABLE INITIALLY IMMEDIATE;')
+		)
+
+		.then( () => { logger.log('INFO', '"sessions" table has been created.') })
+		['catch']( () => {} );
+}
