@@ -18,7 +18,7 @@ require(__dirname + '/models/db').create();
 
 
 app.set('views', __dirname + '/views');
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 
 app.use(require('./middleware/sendHttpError'));
 

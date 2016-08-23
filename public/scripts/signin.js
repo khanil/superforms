@@ -29,7 +29,10 @@
 				.then( () => {
 					document.location.href = '/';
 				})
-				['catch'](showError)
+				['catch'](err => {
+					clearPassword()
+					showError(err);
+				})
 		}
 	}
 

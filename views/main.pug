@@ -1,0 +1,30 @@
+include includes/head
+	title Главная | SuperForms
+	link(rel="stylesheet", href="styles/react-bootstrap-table-all.min.css")
+	link(rel="stylesheet", href="/styles/react-widgets.css")
+body
+	nav#page-header.navbar.navbar-default.navbar-fixed-top
+		.container
+			.row
+				#signout.pull-left
+					a(href="/signout" title="Выход")
+						i.fa.fa-sign-out.fa-flip-horizontal
+						span Выйти
+				#header-root.pull-right
+					a(href='/forms/new')
+						button.btn.btn-primary
+							span Создать форму
+	div#root.container
+	script#info(type="application/json").
+		{
+			"getUrl": "/api/forms",
+			"postUrl": "/api/answers/",
+			"copyUrl": "/api/forms/id/copy",
+			"previewUrl": "/forms/id/preview",
+			"deleteUrl": "/api/forms/id/delete",
+			"editUrl": "/forms/id/edit",
+			"reportUrl": "/forms/id/responses",
+			"sendUrl": "/api/forms/id/send",
+			"statusUrl": "/api/forms/id/status"
+		}
+	script(type="text/javascript", src="/scripts/main.js")

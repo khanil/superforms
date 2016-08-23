@@ -55,9 +55,9 @@ exports.generateUpdateQuery = function(updatedFields, id) {
 // create db tables
 exports.create = () => {
 	Promise.all([
-		createTables(),
 		createSessionsTable(),
 		createStatusTableAndFill(),
+		createTables(),
 		createPosisionsTableAndFill()
 	])
 	['catch'](logger.ERROR);
