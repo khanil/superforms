@@ -75,35 +75,25 @@ function getQuestionsFromTemplate(items) {
 }
 
 
-// function getAllResponses(responsesRows) {
-// 	responses = [];
-// 	* There wiil be a lot of responses rows, so I've decided 
-// 		to use 'for' instead 'forEach' because it is faster *
-// 	for(var i = 0; i < responsesRows.length; i++) {
-// 		responses.push(responsesRows[i].list)
-// 	}
-// 	return responses;
-// }
-
 exports.getOne = function(req, res, next) {
-	var response = new responses.JsonForClient(req.response);
-	res.send(response);
+	res.send({
+		form: forms.modifyForClient(req.form),
+		response: responses.modifyForClient(req.response)
+	});
 }
 
 
 exports.getAll = function(req, res, next) {
-	var data = {};
-	
-	// console.log(req.form.id)
+
 	responses.findAll(req.form.id)
 		.then(foundResponses => {
-			data.responses = [];
 			for(i = 0; i < foundResponses.length; i++) {
-				data.responses[i] = foundResponses[i].list;
-				data.responses[i].id = responses.getHash(foundResponses[i].id);
+				responses.modifyForClient(foundResponses[i]);
 			}
-			data.form = forms.modifyForClient(req.form);
-			res.json(data);
+			res.json({
+				form: forms.modifyForClient(req.form),
+				responses: foundResponses
+			});
 		})
 		['catch'](next);
 }

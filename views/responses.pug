@@ -1,14 +1,13 @@
 include includes/head
 	title Сводка ответов | SuperForms
-	link(rel="stylesheet", href="/styles/react-bootstrap-table-all.min.css")
 body
 	include includes/header
 	div#root.container
 	script#info(type="application/json").
-	{
-		"getUrl": "/api/forms/#{id}/responses",
-		"responsePreviewUrl": "/forms/#{id}/responses/response_id",
-		"buildReportUrl": "/api/forms/#{id}/reports",
-		"buildCSVUrl": "/api/forms/#{id}/responses/xlsx"
-	}
+		{
+			"getUrl": "/api/forms/#{id}/responses",
+			"responsePreviewUrl": "/forms/#{id}/responses/response_id",
+			"buildReportUrl": "/api/forms/#{id}/reports",
+			"buildCSVUrl": "/api/forms/#{id}/responses/xlsx"
+		}
 	script(type="text/javascript", src="/scripts/report.js")

@@ -10,8 +10,8 @@ module.exports = function(req, res, next) {
 		if(!!~req.session.completedForms.indexOf(req.params.id))
 			return next(new HttpError(400, 'Вы уже заполняли данную форму.'));
 
-	if(req.form.expiredate)
-		if(Date.now() > new Date(req.form.expiredate).getTime()) 
+	if(req.form.expires)
+		if(Date.now() > new Date(req.form.expires).getTime()) 
 			return next(new HttpError(403, 'Срок приема ответов уже завершен.'));
 	
 	next();

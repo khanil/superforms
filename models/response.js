@@ -33,32 +33,12 @@ function Response() {
 	}
 
 
-	var JsonForClient = function JsonForClient(responses) {
-		this.id = hashids.encode(responses.id);
-		this.received = responses.received;
-		this.answers = responses.list;
+	this.modifyForClient = function (response) {
+		response.id = hashids.encode(response.id);
+		delete(response.form_id);
+		return response;
 	}
-
-	// exports.JsonForClient = function JsonForClient(questions, responseRow) {
-	// 	var i = 0, 
-	// 			self = this;
-
-	// 	this.id = hashids.encode(responseRow.id);
-	//  	this['Автор'] = responseRow.json[i++];
-	//  	questions.forEach(question => {
-	//  		self[question.title] = responseRow.json[i++];
-	//  	})
-	// }
-
-	// this.modifyForClient = function (questions, responseRow) {
-	// 	form.id = hashids.encode(form.id);
-	// 	form.user_id = user.getHash(form.user_id);
-	// 	Object.renameProperty.call(form, 'allowrefill', 'allowRefill')
-	// 	Object.renameProperty.call(form, 'template', 'scheme')
-	// 	// responseRow.json.id = hashids.encode(responseRow.id);
-	// 	// return responseRow.json;
-	// 	return new JsonForClient(questions, responseRow);
-	// }
+	
 
 	var self = this;
 	this.table = 'responses';

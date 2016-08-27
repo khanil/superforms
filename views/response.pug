@@ -6,7 +6,7 @@ body
 		.container
 			.row
 				.col-md-2.col-lg-2.page-header-return
-					a.back(href='/forms/#{id}/responses')
+					a.back(href='/forms/' + id + '/responses')
 						i.glyphicon.glyphicon-menu-left(aria-hidden='true')
 						// TODO: вставлять наименование страницы
 						span все ответы
@@ -16,7 +16,6 @@ body
 	script#info(type="application/json").
 		{
 			"type": "ANSWER_REVIEW",
-			"getUrl": "/api/forms/#{id}",
-			"responseUrl": "/api/forms/#{id}/responses/#{response_id}"
+			"getUrl": "/api/forms/#{id}/responses/#{response_id}"
 		}
 	script(type="text/javascript", src="/scripts/interview.js")

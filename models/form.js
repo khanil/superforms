@@ -39,10 +39,18 @@ function Form() {
 			null;
 	}
 
+	this.modifyForClientWithoutItems = form => {
+		delete(form.template.items)
+		// copy form template to the object first level
+		Object.assign(form, form.template)
+		delete(form.template)
+		form.id = hashids.encode(form.id);
+		form.user_id = user.getHash(form.user_id);
+	}
+
 	this.modifyForClient = function (form) {
 		form.id = hashids.encode(form.id);
 		form.user_id = user.getHash(form.user_id);
-		Object.renameProperty.call(form, 'allowrefill', 'allowRefill')
 		Object.renameProperty.call(form, 'template', 'scheme')
 		return form;
 	}

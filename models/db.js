@@ -57,12 +57,11 @@ exports.create = () => {
 	Promise.all([
 		createSessionsTable(),
 		createStatusTableAndFill(),
+		createRolesTableAndFill(),
 		createTables(),
-		createPosisionsTableAndFill()
 	])
 	['catch'](logger.ERROR);
 }
-
 
 
 function createTables() {
@@ -74,14 +73,15 @@ function createTables() {
 		\
 		CREATE TABLE IF NOT EXISTS users(\
 			id SERIAL PRIMARY KEY,\
+			fullname VARCHAR(255) NOT NULL,\
 			email VARCHAR(255) UNIQUE,\
 			password VARCHAR(60)\
 		);\
 		\
-		CREATE TABLE IF NOT EXISTS user_position(\
+		CREATE TABLE IF NOT EXISTS user_roles(\
 			user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,\
 			organization_id INTEGER DEFAULT NULL REFERENCES organizations(id) ON DELETE CASCADE,\
-			position_id INTEGER DEFAULT 3 REFERENCES positions(id) ON DELETE CASCADE\
+			role_id INTEGER DEFAULT 3 REFERENCES roles(id) ON DELETE CASCADE\
 		);\
 		\
 		CREATE TABLE IF NOT EXISTS user_status_logs(\
@@ -130,15 +130,15 @@ function createStatusTableAndFill() {
 }
 
 
-function createPosisionsTableAndFill() {
+function createRolesTableAndFill() {
 	return query('\
-			CREATE TABLE IF NOT EXISTS positions(\
+			CREATE TABLE IF NOT EXISTS roles(\
 				id SERIAL PRIMARY KEY,\
 				name VARCHAR(255) UNIQUE\
 			);'
 		)
-		.then( () => query("INSERT INTO positions(name) VALUES('root'), ('admin'), ('employee');"))
-		.then( () => { logger.log('INFO', '"positions" table has been created and filled.') })
+		.then( () => query("INSERT INTO roles(name) VALUES('root'), ('admin'), ('employee');"))
+		.then( () => { logger.log('INFO', '"roles" table has been created and filled.') })
 		['catch']( (err) => {} )
 }
 

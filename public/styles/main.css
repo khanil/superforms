@@ -28,6 +28,13 @@ body.no-header {
 
 .page-header-return i {
   margin-right: 5px;
+  margin-bottom: 3px;
+  vertical-align: middle;
+  font-size: 12px;
+}
+
+.page-header-return span {
+  display: inline-block;
 }
 
 .page-header-info {
@@ -204,22 +211,138 @@ table .form-group {
 }
 
 .back {
-  font-size: 14px;
+  font-size: 16px;
   text-transform: uppercase;
   color: #286090;
 }
 
-#login,
-#password {
+.Select-menu-outer {
+  z-index: 4 !important;
+}
+
+/*Form Generator*/
+
+.form-generator-wrapper {
+
+}
+
+.form-generator {
+  
+}
+
+.form-generator__submit-btn {
+
+}
+
+.form-generator__menu {
+  margin-top: 10px;
+  margin-bottom: 7px;
+}
+
+.form-generator-item {
+  border: 7px solid white;
+}
+
+.form-generator-item:nth-child(even) {
+  background-color: #f8f8f8;
+  border: 7px solid #f8f8f8;
+}
+
+.form-generator-item__item-generator {
+  
+}
+
+.form-generator-item__item-generator_type_header {
+  
+}
+
+.form-generator-item__item-generator_type_question {
+  
+}
+
+.form-generator-item__item-generator_type_delimeter {
+  
+}
+
+.form-generator-item__item-generator_type_image {
+  
+}
+
+.form-generator-item__serial-number {
+  display: inline-block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.form-generator-item__control-btn-group {
+  float: right;
+}
+
+/*Form*/
+
+.super-form {
+
+}
+
+.super-form__header {
+  display: block;
+  font-size: 24px;
   margin-bottom: 15px;
 }
 
-#reg .reg {
-  text-overflow: ellipsis;
-  padding-left: 0;
-  padding-right: 5px;
+.super-form__item {
+
 }
 
-.Select-menu-outer {
-  z-index: 4 !important;
+.super-form__item_type_question {
+  
+}
+
+.super-form__item_type_delimeter {
+  font-size: 18px;
+}
+
+.super-form__item_type_delimeter hr {
+  
+  margin-top: 0;
+}
+
+.super-form__item_type_image {
+  
+}
+
+
+#signin {
+  margin-top: 230px;
+  color: #286090;
+  text-align: center;
+}
+
+#signin input {
+  margin-bottom: 10px;
+}
+
+#regPage h3 {
+  color: #286090;
+}
+
+#reg > .alert {
+  margin-bottom: 15px;
+}
+
+#reg > .registration,
+#users > div  {
+  text-overflow: ellipsis;
+  padding-left: 3px;
+  padding-right: 3px;
+  margin-bottom: 5px;
+}
+
+#reg:after { 
+  content: " ";
+  display: block; 
+  height: 0; 
+  clear: both;
 }

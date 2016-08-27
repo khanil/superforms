@@ -53,7 +53,7 @@ exports.errorHandler = function (err, req, res, send) {
         case DatabaseError:
             if(err.constraint === 'users_email_key') {
                 level = 'WARN'
-                err.httpResponse = new HttpError(422, 'Вы уже зарегистрированы. Пожалуйста, авторизуйтесь.')
+                err.httpResponse = new HttpError(422, 'Пользователь с данным адресом электронной почты уже существует.')
             }
             break;
         // SMTP protocol error (email sending failed)

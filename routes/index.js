@@ -5,6 +5,7 @@ var config = require('../config');
 // middlewares
 var checkAuth = require('../middleware/checkAuth');
 var checkNotAuth = require('../middleware/checkNotAuth');
+var isAdmin = require('../middleware/isAdmin');
 var permissionToFill = require('../middleware/permissionToFill');
 var checkFormByAuthor = require('../middleware/checkFormByAuthor');// find the form and compare user id with user id from session
 var checkResponseByForm = require('../middleware/checkResponseByForm');
@@ -15,7 +16,8 @@ var forms = require('./forms.js');
 var responses = require('./responses.js');
 var reports = require('./reports');
 var loadData = require('../middleware/loadData');
-
+// logger
+var logger = require('../libs/logger');
 
 // var upload = multer({ 
 // 	storage: multer.diskStorage({
@@ -31,7 +33,7 @@ var loadData = require('../middleware/loadData');
 
 module.exports = function (app) {
 	app.use( (req, res, next) => {
-		console.log(req.url, req.method, new Date());
+		logger.INFO(req.method, 'URL:', req.url, 'TIME:', new Date());
 		next()
 	})
 	
@@ -51,9 +53,9 @@ module.exports = function (app) {
 	// app.get('/user/confirm_registration/:confirm_id', loadData, users.confirmRegistration);
 	app.post('/signin', checkNotAuth, users.signIn);
 	app.get('/signout', users.signOut);
-	app.get('/users', loadData, checkAuth, (req, res) => { res.render('users') } );
-	app.get('/api/users', loadData, checkAuth, users.getAll);
-	app.post('/users/new', loadData, checkAuth, users.signUp)
+	app.get('/users', loadData, checkAuth, isAdmin, (req, res) => { res.render('users') } );
+	app.get('/api/users', loadData, checkAuth, isAdmin, users.getAll);
+	app.post('/users/new', loadData, checkAuth, isAdmin, users.signUp)
 
 	app.get('/', require('./main.js').get);
 	

@@ -63,7 +63,7 @@ exports.copy = function(req, res, next) {
 	var newName = (JSON.parse(req.body)).name;
 
 	var newForm = req.form.template;
-	newForm.name = newName;
+	newForm.title = newName;
 	forms.add(req.user.id, newForm)
 		.then(result => {
 			if(result) {
@@ -100,28 +100,33 @@ exports.delete = function(req, res, next) {
 
 exports.send = function(req, res, next) {
 	var options = JSON.parse(req.body);
-	// 
-	Promise.resolve()
-		.then( () => {
-			if(options.recipients) {
-				options.hash = req.params.id;
-				return mailer.send(options)
-			}
-		})
-		.then( () => {
-			['hash', 'recipients', 'topic', 'message'].forEach(key => delete(options[key]))
-			options.id = req.form.id;
-			options.sent = new Date();
-			console.log(options)
-			forms.update(req.form.id, options)
-		})
-		.then( () => {
-			
-		})
-		.then(result => {
+	//
+	forms.update(req.form.id, options)
+		.then(() => {
 				res.sendStatus(200);
 			})
-		['catch'](next);
+		.catch(next);
+	// Promise.resolve()
+	// 	.then( () => {
+	// 		if(options.recipients) {
+	// 			options.hash = req.params.id;
+	// 			return mailer.send(options)
+	// 		}
+	// 	})
+	// 	.then( () => {
+	// 		['hash', 'recipients', 'topic', 'message'].forEach(key => delete(options[key]))
+	// 		options.id = req.form.id;
+	// 		options.sent = new Date();
+	// 		console.log(options)
+	// 		forms.update(req.form.id, options)
+	// 	})
+	// 	.then( () => {
+			
+	// 	})
+	// 	.then(result => {
+	// 			res.sendStatus(200);
+	// 		})
+	// 	['catch'](next);
 }
 
 
@@ -135,9 +140,9 @@ exports.getAll = function(req, res, next) {
 	forms.findAll(req.user.id)
 		.then(foundForms => {
 			if(foundForms) {
-				var formsList = [];
-				
-				foundForms.forEach(forms.modifyForClient)
+				for(let i = 0; i < foundForms.length; i++) {
+					forms.modifyForClient(foundForms[i])
+				}
 				res.json(foundForms);
 			} else {
 				throw new HttpError(404, 'Данная форма не найдена.');

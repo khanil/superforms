@@ -2,17 +2,17 @@ var users = require('../models/user');
 var forms = require('../models/form.js');
 var responses = require('../models/response.js');
 var HttpError = require('../error').HttpError;
+// logger
+var logger = require('../libs/logger');
 
 var models = [
 	require('../models/user'),
 	require('../models/form.js'),
 	require('../models/response.js')
-	// report : require('../models/reports.js')
 ]
 
 // load all required data to 'req' object
 module.exports = function(req, res, next) {
-	console.log('loadData starts:', new Date())
 	if(req.session.user) {
 		req.params.user_id = req.session.user;
 	}
@@ -28,8 +28,8 @@ module.exports = function(req, res, next) {
 		.then(result => {
 			requiredModels.forEach( (model, i) => {
 				req[model.name] = result[i];
+				logger.INFO('REQUIRED DATA:', model.name + ': ' + result[i].id)
 			})
-			console.log('loadData ends:', new Date())
 			next();
 		})
 		['catch'](next);

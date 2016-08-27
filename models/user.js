@@ -20,12 +20,12 @@ function User() {
 
 	this.findOne = function (id) {
 		return db.query(
-			'SELECT users.*, positions.name AS role, status.name AS status, status.id AS status_id, logs.changed AS status_changed\
+			'SELECT users.*, roles.name AS role, status.name AS status, status.id AS status_id, logs.changed AS status_changed\
 			FROM user_status_logs AS logs\
 			JOIN users ON users.id = logs.user_id\
 			JOIN status ON status.id = logs.status_id\
-			JOIN user_position role ON role.user_id = logs.user_id\
-			JOIN positions ON positions.id = role.position_id\
+			JOIN user_roles ON user_roles.user_id = logs.user_id\
+			JOIN roles ON roles.id = user_roles.role_id\
 			WHERE logs.changed = (SELECT MAX(changed) FROM user_status_logs logs WHERE logs.user_id = $1);', 
 			[id]);
 	}
@@ -33,12 +33,13 @@ function User() {
 
 	this.findAll = () => {
 		return db.query(
-			'SELECT users.id, users.email, positions.name AS role, status.name AS status, logs.changed AS status_changed\
+			'SELECT users.id, users.fullname, users.email, roles.name AS role,\
+				status.name AS status, logs.changed AS status_changed\
 			FROM user_status_logs AS logs\
 			JOIN users ON users.id = logs.user_id\
 			JOIN status ON status.id = logs.status_id\
-			JOIN user_position role ON role.user_id = logs.user_id\
-			JOIN positions ON positions.id = role.position_id\
+			JOIN user_roles ON user_roles.user_id = logs.user_id\
+			JOIN roles ON roles.id = user_roles.role_id\
 			WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs logs GROUP BY user_id);', 
 			[], true);
 	}
@@ -52,11 +53,11 @@ function User() {
 	this.add = function (user) {
 		var salt = bcrypt.genSaltSync(10);
 		var hash = bcrypt.hashSync(user.password, salt);
-		return db.query('INSERT INTO users(email, password) VALUES($1, $2) RETURNING id;', [user.email, hash]);
+		return db.query('INSERT INTO users(fullname, email, password) VALUES($1, $2, $3) RETURNING id;', [user.fullname, user.email, hash]);
 	}
 
 	this.addRole = (user_id) => {
-		return db.query('INSERT INTO user_position(user_id) VALUES($1) RETURNING user_id AS id;', [user_id]);
+		return db.query('INSERT INTO user_roles(user_id) VALUES($1) RETURNING user_id AS id;', [user_id]);
 	}
 
 	this.changeStatus = function (id, status) {

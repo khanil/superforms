@@ -1,201 +1,384 @@
-'use strict';
+// xhr
+function sendRequest(method, url, sentData) {
 
-(function () {
-	var specials = '!@#$%^&*_+?';
-	var lowercase = 'abcdefghijklmnopqrstuvwxyz';
-	var uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	var numbers = '0123456789';
-	var all = specials + lowercase + uppercase + numbers;
+	return new Promise(function(resolve, reject) {
+		var xhr = new XMLHttpRequest();
+		xhr.open(method, url, true);
+		xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 
-	var login = document.getElementById('login');
-	var password = document.getElementById('password');
-	var error = document.getElementById('error');
-	var info = document.getElementById('info');
+		xhr.onload = function() {
+			if (this.status === 200) {
+				resolve(this.response);
+			} else {
+				reject(new Error(this.response));
+			}
+		};
+		xhr.onerror = function() {
+			reject(new Error("Ошибка сети"));
+		};
+		sentData ? xhr.send(sentData) : xhr.send();
+	});
 
+}
 
-	clearInputs()
-	getUsers()
-
-	function getUsers() {
-		sendRequest('GET', '/api/users')
-			.then(render)
-			['catch'](showError)
+String.prototype.pick = function(min, max) {
+	var n, chars = '';
+	n = (typeof max === 'undefined') ? min : min + Math.round(Math.random() * (max - min + 1));
+	for (var i = 0; i < n; i++) {
+		chars += this.charAt(Math.round(Math.random() * this.length));
 	}
- 
-
-	// add new user
-	document.getElementById('addUser').addEventListener('click', addUser, false);
-	
-	// 'Enter' key pressure
-	document.addEventListener('keydown', (event) => {
-		if (event.keyCode !== 13) return;
-		addUser();
-	}, false);
-
-	// generate secure password
-	document.getElementById('genPass').addEventListener('click', genPassword, false);
-
-	// close notification (error or info)
-	document.querySelector('#reg').addEventListener('click', (event) => {
-		if(event.target !== error.firstElementChild && event.target !== info.firstElementChild) return;
-		closeNotice(event)
-	}, false);
+	return chars;
+};
 
 
-	function render(users) {
+String.prototype.shuffle = function() {
+	var array = this.split('');
+	var tmp, current, top = array.length;
 
+	if (top) while (--top) {
+		current = Math.floor(Math.random() * (top + 1));
+		tmp = array[current];
+		array[current] = array[top];
+		array[top] = tmp;
 	}
 
+	return array.join('');
+};
 
-	function addUser() {
-		var user = getUserData();
-		var result = checkData(user);
-		if(result instanceof Error) {
-			showError(result);
-			clearInputs();
+window.ee = new EventEmitter();
+
+
+
+
+var Notifications = React.createClass({
+	close: function(event) {
+		window.ee.emit('closeNotification');
+	},
+
+	shapeNotification: function(notification) {
+		var type, message;
+		if(notification instanceof Error) {
+			type = 'danger';
+			message = notification.message;
 		} else {
-			sendRequest('POST', '/users/new', JSON.stringify(user))
-				.then( () => {
-					var message = 'Пользователь успешно зарегистрирован. <strong>Логин:</strong> ' + 
-					user.email + '\t<strong>Пароль:</strong> ' + user.password;
-					showInfo(message)	
-				})
-				['catch'](showError)
+			type = 'info';
+			message = notification
 		}
+		return (
+			<div id={type} className={'alert alert-' + type}>
+				<a href="#" className="close" onClick={this.close}>×</a>
+				<p>{message}</p>
+			</div>)
+	},
+
+	render: function() {
+		var notification = this.props.notification;
+		return notification?
+			this.shapeNotification(notification) :
+			null
 	}
+})
 
 
-	function genPassword() {
-		var newPass = specials.pick(1) + lowercase.pick(1) + uppercase.pick(1) + all.pick(5, 7);
-		password.value = newPass.shuffle();
-	}
 
+var Registration = React.createClass({
+	passwordSource: {
+		specials : '!@#$%&*_+?',
+		lowercase : 'abcdefghijklmnopqrstuvwxyz',
+		uppercase : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+		numbers : '0123456789',
+	},
 
-	function closeNotice(event) {
-		var notification = event.target.parentElement;
-		var currentClass = notification.getAttribute('class');
-		notification.setAttribute('class', currentClass + ' hide');
-	}
-
-
-	function getUserData() {
-		return {
-			email : login.value,
-			password : password.value,
-		}
-	}
-
-
-	// xhr
-	function sendRequest(method, url, sentData) {
-
-		return new Promise(function(resolve, reject) {
-			var xhr = new XMLHttpRequest();
-			xhr.open(method, url, true);
-			xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-
-			xhr.onload = function() {
-				if (this.status === 200) {
-					resolve(this.response);
-				} else {
-					reject(new Error(this.response));
-				}
-			};
-			xhr.onerror = function() {
-				reject(new Error("Ошибка сети"));
-			};
-			sentData ? xhr.send(sentData) : xhr.send();
-		});
-
-	}
-
-
-	function checkData(user) {
-		var errorText;
+	// check data before sending
+	checkData: function(user) {
+		if(!user.fullname)
+			return new Error('Введите ФИО пользователя.')
 
 		if(!user.email) 
 			return new Error('Введите адрес электронной почты.');
 
+		if(!user.password)
+			return new Error('Введите пароль.')
+
 		if(user.password.length < 8)
 			return new Error('Минимальная длина пароля - 8 символов.');
 	
-		if(!checkEmail(user.email))
-			return new Error('Некорректный адрес электронной почты.')
-	}
+		if(!/@/.test(user.email))
+			return new Error('Некорректный адрес электронной почты.');
 
+		return null;
+	},
 
-	function clearInputs() {
-		login.value = '';
-		password.value = '';
-	}
+	getInitialState: () => ({
+		user: {
+			email: '',
+			fullname: '',
+			password: '',
+		},
+		notification: null
+	}),
 
+	onInputChange: function(event) {
+		var input = event.target;
+		this.state.user[input.id] = input.value
+	},
 
-	function showInfo(message) {
-		var info = document.querySelector('#info p');
-		info.innerHTML = message
-		info.parentElement.setAttribute('class', 'alert alert-info');
-	}
+	componentDidMount: function() {
+		window.ee.addListener('closeNotification', () => {
+			this.setState({ notification: null });
+		});
+	},
 
-	function showError(err) {
-		var error = document.querySelector('#error p');
-		error.textContent = err.message;
-		error.parentElement.setAttribute('class', 'alert alert-danger');
-	}	
+	// generate secure password
+	genPass: function() {
+		var source = this.passwordSource;
+		var all = source.lowercase + source.uppercase + source.numbers;
+		var newPass = 
+			source.specials.pick(1) + 
+			source.lowercase.pick(1) + 
+			source.uppercase.pick(1) + 
+			all.pick(5, 7);
+		var user = this.state.user;
+		this.state.user.password = this.refs.password.value = newPass.shuffle();
+	},
 
+	clearInputs: function() {
+		
+	},
 
-	function checkEmail(email) {
-		var re = /@/;
-		return re.test(email);
-	}
-
-
-	String.prototype.pick = function(min, max) {
-		var n, chars = '';
-		n = (typeof max === 'undefined') ? min : min + Math.round(Math.random() * (max - min + 1));
-		for (var i = 0; i < n; i++) {
-			chars += this.charAt(Math.round(Math.random() * this.length));
+	submit: function() {
+		var user = this.state.user
+		var err = this.checkData(user)
+		if(err) {
+			this.setState({ notification: err })
+		} else {
+			sendRequest('POST', '/users/new', JSON.stringify(user))
+				.then((registeredUser) => {
+					window.ee.emit('addUser', JSON.parse(registeredUser));
+					this.setState({ notification: 'Пользователь ' + user.fullname + ' успешно зарегистрирован.\
+						Логин: ' + user.email + ' Пароль: ' + user.password })
+				})
+				.catch(err => {
+					this.setState({ notification: err })
+				})
 		}
-		return chars;
-	};
+	},
+
+	render: function() {
+		return (
+			<div id="reg">
+			  	{/* */}
+				<h3>Регистрация пользователей:</h3>
+				<Notifications notification={this.state.notification}/>
+				<div className="col-sm-4 registration">
+					<input 
+						id="fullname" 
+						type="text" 
+						placeholder="ФИО" 
+						className="form-control"
+						ref="fullname"
+						onChange={this.onInputChange}/>
+				</div>
+				<div className="col-sm-3 registration">
+					<input 
+						id="email" 
+						type="text" 
+						placeholder="Электронная почта" 
+						className="form-control"
+						ref="email"
+						onChange={this.onInputChange}/>
+				</div>
+				{/* Password field */}
+				<div className="col-sm-3 registration">
+					<input
+						id="password"
+						type="text" 
+						placeholder="Пароль" 
+						className="form-control"
+						ref='password'
+						onChange={this.onInputChange}
+					/>
+				</div>
+				{/* Generate password */}
+				<div className="col-sm-1 registration" onClick={this.genPass}>
+					<button id="genPass" data-toggle="tooltip" title="Сгенерировать пароль" className="btn btn-info btn-block">
+						<span aria-hidden="true" className="glyphicon glyphicon-lock"></span>
+					</button>
+				</div>
+				{/* Submit button */}
+				<div className="col-sm-1 registration" onClick={this.submit}>
+					<button id="addUser" data-toggle="tooltip" title="Добавить пользователя" className="btn btn-primary btn-block">
+						<span aria-hidden="true" className="glyphicon glyphicon-plus"></span>
+					</button>
+				</div>
+			</div>
+		)
+	}
+
+})
 
 
-	String.prototype.shuffle = function() {
-		var array = this.split('');
-		var tmp, current, top = array.length;
+var Columns = React.createClass({
+	ruColumns: {
+		fullname: 'ФИО',
+		email: 'Электронная почта',
+		role: 'Роль',
+		status: 'Статус',
+		status_changed: 'Статус изменен'
+	},
 
-		if (top) while (--top) {
-			current = Math.floor(Math.random() * (top + 1));
-			tmp = array[current];
-			array[current] = array[top];
-			array[top] = tmp;
-		}
+	render: function() {
+		var columns = this.props.columns;
+		return (
+			<tr>
+				{columns.map(column => 
+					(<th key={column.name} id={column.name}>
+						{this.ruColumns[column.name]}
+						{column.sortOrder ? 
+							(<span className={'pull-right glyphicon glyphicon-menu-' + (column.sortOrder === 'asc' ? 'down' : 'up')}></span>) :
+							null
+						}
+					</th>))}
+			</tr>
+		)
+	}
+})
 
-		return array.join('');
-	};
+				// <th id="fullname">ФИО</th>
+				// <th id="email">Электронная почта</th>
+				// <th id="role">Роль</th>
+				// <th id="status">Статус</th>
+				// <th id="status_changed">Статус изменен</th>
+
+var User = React.createClass({
+	ruStatuses: {
+		'active': 'Активен',
+		'baned': 'Заблокирован',
+		'waiting': 'Ожидает подтверждения регистрации'
+	},
+
+	roles: {
+		'admin': 'Администратор',
+		'employee': 'Сотрудник'
+	},
+
+	render: function() {
+		var user = this.props.user;
+		return (
+			<tr>
+				<td>{ user.fullname }</td>
+				<td>{ user.email }</td>
+				<td>{ this.roles[user.role]? this.roles[user.role] : user.role }</td>
+				<td>{ this.ruStatuses[user.status] }</td>
+				<td>{ (new Date(user.status_changed)).toLocaleString("ru") }</td>
+			</tr>
+		)
+	}
+});
 
 
-}) ();
+
+var Users = React.createClass({
+	getInitialState: () => ({
+		columns: [
+			{ name: 'fullname', sortOrder: '' },
+			{ name: 'email', sortOrder: '' },
+			{ name: 'role', sortOrder: '' },
+			{ name: 'status', sortOrder: '' },
+			{ name: 'status_changed', sortOrder: '' }
+		],
+		users: []
+	}),
+
+	componentDidMount: function() {
+		sendRequest('GET', '/api/users')
+			.then(response => { this.setState({ users: JSON.parse(response) })})
+			.catch(err => { console.log('xhr err:', err) })
+
+		window.ee.addListener('addUser', user => {
+			this.setState({ user: this.state.users.push(user) });
+		});
+
+		window.ee.addListener('sort', (column, order) => {
+			
+		});
+	},
+
+	sort: function(event) {
+		if(event.target.tagName !== 'TH')
+			return;
+
+		var columns = this.state.columns;
+		var key = event.target.id;
+		var clicked = event.target.cellIndex;
+		var newOrder = columns[clicked].sortOrder === 'asc' ? 'desc' : 'asc';
+
+		columns[clicked] = Object.assign(columns[clicked], { sortOrder: newOrder });
+		this.setState({ 
+			users: this.state.users.sort(
+				(u1, u2) => columns[clicked].sortOrder === 'asc' ? u1[key] > u2[key] : u1[key] < u2[key]
+			),
+			columns: columns 
+		})
+		console.log('state.columns:', this.state.columns)
+	},
+
+	showUsers: function(users) {
+		return (
+			<div id="users">
+				<table className="table table-bordered table-hover">
+					<thead onClick={this.sort}>
+						<Columns columns={this.state.columns}/>
+					</thead>
+					<tbody>
+						{users.map(
+							user => (<User key={user.id} user={user} />)
+						)}
+					</tbody>
+				</table>
+				
+			</div>
+		)
+	},
+
+	render: function() {
+		var users = this.state.users;
+		// console.log(users, this.state.columns)
+		return (
+			<div id="users">
+				<h3>Зарегистрированные пользователи:</h3>
+				{users.length ? 
+					this.showUsers(users) : 
+					<p>Пользователей не найдено.</p>}
+			</div>
+		)
+	}
+})
 
 
-	// document.querySelector('#sign-up-container ul.nav.nav-tabs').addEventListener('click', showPane, false);
+var App = React.createClass({
+	render: function() {
+		return (
+			<div id="regPage"> 
+				<Registration />
+				<Users />
+			</div>
+		)
+	}
+})
 
-	// function showPane(event) {
-	// 	if (event.target.tagName !== "A") return;
 
-	// 	var tab = document.querySelector('li.active');
-	// 	var newTab = event.target.parentElement;
 
-	// 	if(tab === newTab) return;
+ReactDOM.render(
+  <App />,
+  document.getElementById('root')
+);
 
-	// 	document.getElementById('error').addClass('hide');
-	// 	// change active tab to the new tab
-	// 	tab.removeClass();
-	// 	newTab.setClass('active');
 
-	// 	var newTabPane = document.getElementById(newTab.getAttribute('name'));
-	// 	var tabPane = document.querySelector('div.active.in');
-	// 	// change active tab pane to the new tab pane
-	// 	tabPane.setClass( newTabPane.getClass() );
-	// 	newTabPane.addClass('active');
-	// 	newTabPane.addClass('in');
-	// }
+// this.refs.password.value.length < 8 ? 
+// 	setTimeout(() => {
+// 		this.setState({ error: this.refs.password.value.length < 8 ? 
+// 			'Минимальная длина пароля - 8 символов.' : 
+// 			'' }) 
+// 	}, 1500) : 
+// 	this.setState({ error: '' })

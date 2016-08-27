@@ -27,15 +27,23 @@ exports.signUp = function (req, res, next) {
 	Promise.resolve()
 		.then( () => user = JSON.parse(req.body)) // parse request body
 		.then( users.add ) // add the user into db
-		.then( newUser => users.addRole(newUser.id) )
-		.then( newUser => { 
+		.then( newUser => {
 			user.id = newUser.id; // write id to the enclosing object 'user'
-			return users.changeStatus(user.id, 'active') // add status into db
+			user.role = 'employee'
+			return users.addRole(newUser.id)} )
+		.then( () => {
+			user.status = 'active';
+			return users.changeStatus(user.id, user.status) // add status into db
 		})
 		// get hash for registry confirmation url and write it to the enclosing object 'user'
 		.then( statusLogRow => user.regConfirmHash = users.getRegConfirmHash(statusLogRow) )
 		//.then( () => mailer.sendRegConfirm(user) ) // send a letter for registry confirmation
-		.then( () => { res.sendStatus(200); })
+		.then( () => { 
+			user.id = users.getHash(user.id);
+			delete(user.password)
+			delete(user.regConfirmHash)
+			res.json(user);
+		})
 		.catch( err => {
 			if(err instanceof SmtpError) {
 				users.delete(user.id)	
