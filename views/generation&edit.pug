@@ -7,15 +7,14 @@ body
 		nav.container
 			- if (isAdmin)
 				a.pull-left(href='/users') Пользователи
-			a.pull-left.pre-active(href='/') Формы
+			a.pull-left.pre-active(href='/forms') Формы
 			div.triangle.pull-left.triangle-left
 			- if (type === 'CREATE_FORM')
 				a.pull-left.active Создание формы
 			- else
 				a.pull-left.active Редактирование формы
 			div.triangle.pull-left.triangle-right
-			a.pull-right(href='#profile' title='Профиль' data-placement='left')
-				span.glyphicon.glyphicon-user
+			include includes/signout
 
 	div#root.container
 	script#info(type="application/json").

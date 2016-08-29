@@ -56,17 +56,30 @@ function User() {
 		return db.query('INSERT INTO users(fullname, email, password) VALUES($1, $2, $3) RETURNING id;', [user.fullname, user.email, hash]);
 	}
 
-	this.addRole = (user_id) => {
-		return db.query('INSERT INTO user_roles(user_id) VALUES($1) RETURNING user_id AS id;', [user_id]);
+	this.addRole = (user_id, role) => {
+		return role? 
+			db.query(
+				'INSERT INTO user_roles(user_id, role_id)\
+				 VALUES($1, (SELECT id FROM roles WHERE name = $2))\
+				 RETURNING user_id AS id;', [user_id, role]
+			) :
+			db.query(
+				'INSERT INTO user_roles(user_id) VALUES($1)\
+				 RETURNING user_id AS id;', [user_id]
+			);
 	}
 
 	this.changeStatus = function (id, status) {
-		return db.query(
-			'INSERT INTO user_status_logs(user_id, status_id)\
-			VALUES($1, (SELECT id FROM status WHERE name = $2))\
-			RETURNING *', 
-			[id, status]
-		)
+		return status?
+			db.query(
+				'INSERT INTO user_status_logs(user_id, status_id)\
+				 VALUES($1, (SELECT id FROM status WHERE name = $2))\
+				 RETURNING *', [id, status]
+			) :
+			db.query(
+				'INSERT INTO user_status_logs(user_id) VALUES($1)\
+				 RETURNING *', [id]
+			);
 	}
 
 	this.update = (id, updatedFields) => {

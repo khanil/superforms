@@ -21,14 +21,15 @@ module.exports = function(req, res, next) {
 		return model.getIdFromParams(req.params) 
 	})
 	// async search the database
-	Promise.all(requiredModels.map( model => { 
+	Promise.all(requiredModels.map( model => {
 				return model.findOne( model.getIdFromParams(req.params) ) 
 			})
 		) // write found results into 'req' object with corresponding model names
 		.then(result => {
 			requiredModels.forEach( (model, i) => {
 				req[model.name] = result[i];
-				logger.INFO('REQUIRED DATA:', model.name + ': ' + result[i].id)
+				console.log(!!result[i])
+				logger.INFO('REQUIRED DATA:', model.name + ': ' + (result[i]? result[i].id : 'NOT FOUND') )
 			})
 			next();
 		})

@@ -3,13 +3,14 @@
 }
 
 body {
-  background-color: #fcfcfc;
-  /*padding-top: 70px;*/
-  color: #333;
+  background-color: #fefefe;
+  color: #444;
 }
 
-input {
-  background-color: inherit !important;
+input,
+button.btn-default,
+.Select div, .Select span, .Select input{
+  background-color: #fefefe !important;
 }
 
 body.no-header {
@@ -389,17 +390,21 @@ header.responses {
 
 header nav.container {
   height: 100%;
-  text-align: center;
   line-height: 38px;
 }
 
 header nav.container > a {
+  position: relative;
+  float: left;
   padding-left: 30px;
   padding-right: 30px;
   height: 100%;
   line-height: 38px;
   font-size: 18px;
-  color: #fcfcfc;
+  font-size: 14px;
+  /*font-weight: bold;*/
+  text-transform: uppercase;
+  color: #fefefe;
 }
 
 header nav.container > a.pre-active {
@@ -408,8 +413,9 @@ header nav.container > a.pre-active {
 }
 
 header nav.container > a.active {
-  background-color: #fcfcfc;
-  color: #666;
+  background-color: #fefefe;
+  color: #555;
+  z-index: 2 !important;
 }
 
 header nav.container > a.post-active {
@@ -422,6 +428,7 @@ header nav.container > a:hover {
 }
 
 header nav.container > a:not(.active):hover {
+  opacity: .99;
   background-color: #f0ad4e;
   border-color: #eea236;
 }
@@ -453,6 +460,8 @@ header nav.container span {
 }
 
 header .triangle {
+  position: relative;
+  float: left;
   width: 0; 
   height: 0; 
   z-index: 2 !important;
@@ -460,11 +469,28 @@ header .triangle {
 
 header .triangle-left {
   border-top: 40px solid transparent; 
-  border-right: 12px solid #fcfcfc; 
-  /*margin-left: -12px;*/
+  border-right: 12px solid #fefefe; 
 }
 
 header .triangle-right {
   border-top: 40px solid transparent; 
-  border-left: 12px solid #fcfcfc; 
+  border-left: 12px solid #fefefe; 
+}
+
+div.container.message {
+  text-align: center;
+}
+
+
+.create-form {
+  /*height: 0;*/
+ 
+}
+
+.create-form > a {
+   /*width: 171px;*/
+  position: relative;
+  top: 15px;
+  float: right;
+  /*margin-bottom: -34px;*/
 }

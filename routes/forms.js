@@ -4,15 +4,17 @@ var HttpError = require('../error').HttpError;
 var mailer = require('../libs/mailer')
 
 
+exports.sendFormsPage = (req, res) => {
+	res.render('forms', { isAdmin: req.user.role === 'admin'}) 
+}
+
 exports.sendGeneratorPage = function (req, res) {
-	console.log(req.user)
 	res.render('generation&edit', { 
 		title: 'Создание формы',
 		page: 'Главная',
 		type: 'CREATE_FORM',
 		id: 'id',
-		isUser: !!req.user,
-		isAdmin: req.user? req.user.role === 'admin' : false
+		isAdmin: req.user.role === 'admin'
 	});
 };
 
@@ -22,7 +24,7 @@ exports.sendEditPage = function(req, res, next) {
 		type: 'EDIT_FORM',
 		id: req.params.id,
 		isUser: !!req.user,
-		isAdmin: req.user? req.user.role === 'admin' : false
+		isAdmin: req.user.role === 'admin'
 	});
 }
 
@@ -68,7 +70,7 @@ exports.update = function(req, res, next) {
 
 exports.copy = function(req, res, next) {
 	var id = req.form.id;
-	var newName = (JSON.parse(req.body)).name;
+	var newName = req.body;
 
 	var newForm = req.form.template;
 	newForm.title = newName;

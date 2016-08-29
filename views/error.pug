@@ -6,13 +6,11 @@ body
 			- if (isUser)
 				- if (isAdmin)
 					a.pull-left(href='/users') Пользователи
-				a.pull-left(href='/') Формы
-				a.pull-right(href='#profile' title='Профиль' data-placement='left')
-					span.glyphicon.glyphicon-user
+				a.pull-left(href='/forms') Формы
+				include includes/signout
 			- else 
-				a.col-xs-1.pull-right(href='#signin' title='Войти' data-placement='left')
-					span.glyphicon.glyphicon-log-in
+				include includes/signin
 
-	div.container
+	div.container.message
 		h2 Извините, произошла ошибка.
-		p #{error.message}
+		h4 #{error.message}

@@ -3,8 +3,8 @@ var forms = require('../models/form.js');
 
 
 module.exports = function(req, res, next) {
-	if(!req.form)
-		return next(new HttpError(404, 'Данная форма не найдена.'));
+	if( !(req.form && req.form.sent) )
+		return next(new HttpError(404, 'Запрашиваемая форма не найдена.'));
 
 	if(req.session.completedForms)
 		if(!!~req.session.completedForms.indexOf(req.params.id))

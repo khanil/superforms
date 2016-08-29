@@ -86,7 +86,7 @@ function createTables() {
 		\
 		CREATE TABLE IF NOT EXISTS user_status_logs(\
 			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,\
-			status_id INTEGER NOT NULL REFERENCES status(id) ON DELETE RESTRICT,\
+			status_id INTEGER DEFAULT 2 REFERENCES status(id) ON DELETE RESTRICT,\
 			changed TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
 		);\
 		\

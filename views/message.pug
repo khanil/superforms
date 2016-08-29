@@ -1,18 +1,16 @@
 include includes/head
 	title Сообщение | SuperForms
 body
-	header.error
+	header.responses
 		nav.container
 			- if (isUser)
 				- if (isAdmin)
 					a.pull-left(href='/users') Пользователи
-				a.pull-left(href='/') Формы
-				a.pull-right(href='#profile' title='Профиль' data-placement='left')
-					span.glyphicon.glyphicon-user
+				a.pull-left(href='/forms') Формы
+				include includes/signout
 			- else 
-				a.pull-right(href='#signin' title='Войти' data-placement='left')
-					span.glyphicon.glyphicon-log-in
+				include includes/signin
 
-	div.container
-		h3 #{title}
-		p #{text}
+	div.container.message
+		h2 #{title}
+		h4 #{text}

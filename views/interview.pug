@@ -7,19 +7,17 @@ body
 			- if (isUser)
 				- if (isAdmin)
 					a.pull-left(href='/users') Пользователи
-				a.pull-left.pre-active(href='/') Формы
+				a.pull-left.pre-active(href='/forms') Формы
 				div.triangle.pull-left.triangle-left
 				a.pull-left.active Заполнение формы
 				div.triangle.pull-left.triangle-right
-				a.pull-right(href='#profile' title='Профиль' data-placement='left')
-					span.glyphicon.glyphicon-user
+				include includes/signout
 
 			- else
 				div.triangle.pull-left.triangle-left
 				a.pull-left.active Заполнение формы
 				div.triangle.pull-left.triangle-right
-				a.pull-right(href='/' title='Войти' data-placement='left')
-					span.glyphicon.glyphicon-log-in
+				include includes/signin
 
 	div#root.container
 	script#info(type="application/json").
