@@ -2,17 +2,16 @@ include includes/head
 	title Главная | SuperForms
 	link(rel="stylesheet", href="/styles/react-widgets.css")
 body
-	nav#page-header.navbar.navbar-default.navbar-fixed-top
-		.container
-			.row
-				#signout.pull-left
-					a(href="/signout" title="Выход")
-						i.fa.fa-sign-out.fa-flip-horizontal
-						span Выйти
-				#header-root.pull-right
-					a(href='/forms/new')
-						button.btn.btn-primary
-							span Создать форму
+	header.forms
+		nav.container
+			- if (isAdmin)
+				a.pull-left.pre-active(href='/users') Пользователи
+			div.triangle.pull-left.triangle-left
+			a.pull-left.active Формы
+			div.triangle.pull-left.triangle-right
+			a.pull-right(href='#profile' title='Профиль' data-placement='left')
+				span.glyphicon.glyphicon-user
+	
 	div#root.container
 	script#info(type="application/json").
 		{

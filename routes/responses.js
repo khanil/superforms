@@ -29,13 +29,14 @@ exports.save = function(req, res, next) {
 exports.sendResponsePage = function(req, res, next) {
 	res.render('response', { 
 		id: req.params.id, 
-		response_id: req.params.response_id
+		response_id: req.params.response_id,
+		isAdmin: req.user.role === 'admin'
 	});
 }
 
 
 exports.sendResponsesPage = function(req, res, next) {
-	res.render('responses', { id: req.params.id });
+	res.render('responses', { isAdmin: req.user.role === 'admin', id: req.params.id });
 };
 
 

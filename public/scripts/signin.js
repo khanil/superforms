@@ -27,7 +27,7 @@
 		} else {
 			sendRequest('POST', '/signin', JSON.stringify(user))
 				.then( () => {
-					document.location.href = '/';
+					document.location.href = document.location.href;
 				})
 				['catch'](err => {
 					clearPassword()

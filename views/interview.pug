@@ -2,6 +2,25 @@ include includes/head
 	title Заполнение формы | SuperForms
 	link(rel="stylesheet", href="/styles/react-widgets.css")
 body
+	header.forms
+		nav.container
+			- if (isUser)
+				- if (isAdmin)
+					a.pull-left(href='/users') Пользователи
+				a.pull-left.pre-active(href='/') Формы
+				div.triangle.pull-left.triangle-left
+				a.pull-left.active Заполнение формы
+				div.triangle.pull-left.triangle-right
+				a.pull-right(href='#profile' title='Профиль' data-placement='left')
+					span.glyphicon.glyphicon-user
+
+			- else
+				div.triangle.pull-left.triangle-left
+				a.pull-left.active Заполнение формы
+				div.triangle.pull-left.triangle-right
+				a.pull-right(href='/' title='Войти' data-placement='left')
+					span.glyphicon.glyphicon-log-in
+
 	div#root.container
 	script#info(type="application/json").
 		{

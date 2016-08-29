@@ -155,11 +155,17 @@ var Registration = React.createClass({
 			sendRequest('POST', '/users/new', JSON.stringify(user))
 				.then((registeredUser) => {
 					window.ee.emit('addUser', JSON.parse(registeredUser));
-					this.setState({ notification: 'Пользователь ' + user.fullname + ' успешно зарегистрирован.\
-						Логин: ' + user.email + ' Пароль: ' + user.password })
+					this.setState({ 
+						notification: 'Пользователь ' + user.fullname + ' успешно зарегистрирован.\
+							Логин: ' + user.email + ' Пароль: ' + user.password,
+						user: { email: '', fullname: '', password: '' }
+					})
 				})
 				.catch(err => {
-					this.setState({ notification: err })
+					this.setState({ 
+						notification: err,
+						user: { email: '', fullname: '', password: '' }
+					})
 				})
 		}
 	},
@@ -201,13 +207,21 @@ var Registration = React.createClass({
 				</div>
 				{/* Generate password */}
 				<div className="col-sm-1 registration" onClick={this.genPass}>
-					<button id="genPass" data-toggle="tooltip" title="Сгенерировать пароль" className="btn btn-info btn-block">
+					<button 
+						id="genPass" 
+						data-toggle="tooltip" 
+						title="Сгенерировать пароль" 
+						className="btn btn-info btn-block">
 						<span aria-hidden="true" className="glyphicon glyphicon-lock"></span>
 					</button>
 				</div>
 				{/* Submit button */}
 				<div className="col-sm-1 registration" onClick={this.submit}>
-					<button id="addUser" data-toggle="tooltip" title="Добавить пользователя" className="btn btn-primary btn-block">
+					<button 
+						id="addUser" 
+						data-toggle="tooltip" 
+						title="Добавить пользователя" 
+						className="btn btn-primary btn-block">
 						<span aria-hidden="true" className="glyphicon glyphicon-plus"></span>
 					</button>
 				</div>
@@ -244,11 +258,6 @@ var Columns = React.createClass({
 	}
 })
 
-				// <th id="fullname">ФИО</th>
-				// <th id="email">Электронная почта</th>
-				// <th id="role">Роль</th>
-				// <th id="status">Статус</th>
-				// <th id="status_changed">Статус изменен</th>
 
 var User = React.createClass({
 	ruStatuses: {
@@ -325,19 +334,16 @@ var Users = React.createClass({
 
 	showUsers: function(users) {
 		return (
-			<div id="users">
-				<table className="table table-bordered table-hover">
-					<thead onClick={this.sort}>
-						<Columns columns={this.state.columns}/>
-					</thead>
-					<tbody>
-						{users.map(
-							user => (<User key={user.id} user={user} />)
-						)}
-					</tbody>
-				</table>
-				
-			</div>
+			<table className="table table-bordered table-hover">
+				<thead onClick={this.sort}>
+					<Columns columns={this.state.columns}/>
+				</thead>
+				<tbody>
+					{users.map(
+						user => (<User key={user.id} user={user} />)
+					)}
+				</tbody>
+			</table>
 		)
 	},
 

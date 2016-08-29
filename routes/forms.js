@@ -5,11 +5,14 @@ var mailer = require('../libs/mailer')
 
 
 exports.sendGeneratorPage = function (req, res) {
+	console.log(req.user)
 	res.render('generation&edit', { 
 		title: 'Создание формы',
 		page: 'Главная',
 		type: 'CREATE_FORM',
-		id: 'id'
+		id: 'id',
+		isUser: !!req.user,
+		isAdmin: req.user? req.user.role === 'admin' : false
 	});
 };
 
@@ -17,17 +20,22 @@ exports.sendEditPage = function(req, res, next) {
 	res.render('generation&edit', { 
 		title: 'Редактирование формы',
 		type: 'EDIT_FORM',
-		id: req.params.id
+		id: req.params.id,
+		isUser: !!req.user,
+		isAdmin: req.user? req.user.role === 'admin' : false
 	});
 }
 
 exports.sendPreviewPage = function(req, res, next) {
-	res.render('preview', { id: req.params.id });
+	res.render('preview', { id: req.params.id, isAdmin: req.user.role === 'admin' });
 }
 
 
 exports.sendInterviewPage = function(req, res, next) {
-	res.render('interview', { id: req.params.id });
+	res.render('interview', { id: req.params.id,
+		isUser: !!req.user,
+		isAdmin: req.user? req.user.role === 'admin' : false
+	});
 }
 
 
@@ -100,33 +108,27 @@ exports.delete = function(req, res, next) {
 
 exports.send = function(req, res, next) {
 	var options = JSON.parse(req.body);
-	//
-	forms.update(req.form.id, options)
-		.then(() => {
+	Promise.resolve()
+		.then( () => {
+			if(options.recipients) {
+				options.hash = req.params.id;
+				return mailer.send(options)
+			}
+		})
+		.then( () => {
+			['hash', 'recipients', 'topic', 'message'].forEach(key => delete(options[key]))
+			options.id = req.form.id;
+			options.sent = new Date();
+			console.log(options)
+			forms.update(req.form.id, options)
+		})
+		.then( () => {
+			
+		})
+		.then(result => {
 				res.sendStatus(200);
 			})
-		.catch(next);
-	// Promise.resolve()
-	// 	.then( () => {
-	// 		if(options.recipients) {
-	// 			options.hash = req.params.id;
-	// 			return mailer.send(options)
-	// 		}
-	// 	})
-	// 	.then( () => {
-	// 		['hash', 'recipients', 'topic', 'message'].forEach(key => delete(options[key]))
-	// 		options.id = req.form.id;
-	// 		options.sent = new Date();
-	// 		console.log(options)
-	// 		forms.update(req.form.id, options)
-	// 	})
-	// 	.then( () => {
-			
-	// 	})
-	// 	.then(result => {
-	// 			res.sendStatus(200);
-	// 		})
-	// 	['catch'](next);
+		['catch'](next);
 }
 
 

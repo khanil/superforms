@@ -1,7 +1,17 @@
 include includes/head
 	title Сводка ответов | SuperForms
 body
-	include includes/header
+	header.responses
+		nav.container
+			- if (isAdmin)
+				a.pull-left(href='/users') Пользователи
+			a.pull-left.pre-active(href='/') Формы
+			div.triangle.pull-left.triangle-left
+			a.pull-left.active Ответы
+			div.triangle.pull-left.triangle-right
+			a.pull-right(href='#profile' title='Профиль' data-placement='left')
+				span.glyphicon.glyphicon-user
+					
 	div#root.container
 	script#info(type="application/json").
 		{

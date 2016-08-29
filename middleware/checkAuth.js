@@ -9,5 +9,9 @@ module.exports = function(req, res, next) {
 			case 'active' : return next();
 		}
 	}
+	// redirect to sign in if request ins't XHR 
+	if (!res.req.headers['x-requested-with']) {
+		return res.render('signin');
+	}
 	next(new HttpError(401, "Вы не авторизованы."));
 };

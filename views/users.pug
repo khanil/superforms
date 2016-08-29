@@ -1,6 +1,16 @@
 include includes/head
 	title Пользователи | SuperForms
 	body
+		header.users
+			nav.container
+				div.triangle.pull-left.triangle-left
+				a.pull-left.active Пользователи
+				div.triangle.pull-left.triangle-right
+				a.pull-left.post-active(href='/') Формы
+				a.pull-right(href='#profile' title='Профиль' data-placement='left')
+					span.glyphicon.glyphicon-user
+
+			
 		#root.container
 		script(src="/scripts/react/react.js")
 		script(src="/scripts/react/react-dom.js")

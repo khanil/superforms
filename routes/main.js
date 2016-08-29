@@ -1,5 +1,7 @@
 var path = require('path');
 
 exports.get = function (req, res, next) {
-	res.render(req.session.user ? 'main' : 'signin');
+	(req.user) ?
+		res.render('forms', { isAdmin: req.user.role === 'admin'}) :
+		res.render('signin');
 };

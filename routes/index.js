@@ -57,17 +57,17 @@ module.exports = function (app) {
 	app.get('/api/users', loadData, checkAuth, isAdmin, users.getAll);
 	app.post('/users/new', loadData, checkAuth, isAdmin, users.signUp)
 
-	app.get('/', require('./main.js').get);
+	app.get('/', loadData, require('./main.js').get);
 	
 	// app.post('/forms/uploadfiles', loadData, checkAuth, 
 	// 	upload.array('files', config.get('multer:maxCount')), forms.uploadFiles);
 	app.get('/forms/new', loadData, checkAuth, forms.sendGeneratorPage);// get form's generator page
-	app.get('/forms/:id/edit', loadData, checkFormByAuthor, forms.sendEditPage);// send form's edit page for author
-	app.get('/forms/:id/preview', loadData, checkFormByAuthor, forms.sendPreviewPage);
+	app.get('/forms/:id/edit', loadData, checkAuth, checkFormByAuthor, forms.sendEditPage);// send form's edit page for author
+	app.get('/forms/:id/preview', loadData, checkAuth, checkFormByAuthor, forms.sendPreviewPage);
 	app.get('/forms/:id', loadData, permissionToFill, forms.sendInterviewPage);// send 'interview' page
 	app.get('/success', (req, res, next) => { res.render('message', { title: 'Спасибо за Ваш ответ!', text: 'Форма успешно заполнена.'} )})
-	app.get('/forms/:id/responses', loadData, checkFormByAuthor, responses.sendResponsesPage);//send responses page
-	app.get('/forms/:id/responses/:response_id', loadData, 
+	app.get('/forms/:id/responses', loadData, checkAuth, checkFormByAuthor, responses.sendResponsesPage);//send responses page
+	app.get('/forms/:id/responses/:response_id', loadData, checkAuth,
 		checkFormByAuthor, checkResponseByForm, responses.sendResponsePage);//get one response by id 
 	app.get('/forms/:id/reports', loadData, checkFormByAuthor, reports.getAllByForm);//get all reports by form id
 
@@ -77,17 +77,17 @@ module.exports = function (app) {
 	app.post('/api/forms', loadData, checkAuth, forms.save);//save form's template
 
 	app.get('/api/forms/:id', loadData, forms.getOne);//get form's template in JSON 
-	app.post('/api/forms/:id/copy', loadData, checkFormByAuthor, forms.copy);//copy form's template
-	app.post('/api/forms/:id/update', loadData, checkFormByAuthor, forms.update);//update form's template
-	app.delete('/api/forms/:id/delete', loadData, checkFormByAuthor, forms.delete);
-	app.post('/api/forms/:id/send', loadData, checkFormByAuthor, forms.send);
+	app.post('/api/forms/:id/copy', loadData, checkAuth, checkFormByAuthor, forms.copy);//copy form's template
+	app.post('/api/forms/:id/update', loadData, checkAuth, checkFormByAuthor, forms.update);//update form's template
+	app.delete('/api/forms/:id/delete', loadData, checkAuth, checkFormByAuthor, forms.delete);
+	app.post('/api/forms/:id/send', loadData, checkAuth, checkFormByAuthor, forms.send);
 
 
-	app.get('/api/forms/:id/responses', loadData, checkFormByAuthor, responses.getAll);//get all responses
-	app.get('/api/forms/:id/responses/xlsx', loadData, checkFormByAuthor, responses.getXlsx);//get all responses
-	app.get('/api/forms/:id/responses/:response_id', loadData, 
+	app.get('/api/forms/:id/responses', loadData,  checkAuth, checkFormByAuthor, responses.getAll);//get all responses
+	app.get('/api/forms/:id/responses/xlsx', loadData, checkAuth, checkFormByAuthor, responses.getXlsx);//get all responses
+	app.get('/api/forms/:id/responses/:response_id', loadData, checkAuth, 
 		checkFormByAuthor, checkResponseByForm, responses.getOne);//get one response by id 
 	app.post('/api/forms/:id/responses', loadData, permissionToFill, responses.save);//save interview (filled form) 
-	app.post('/api/forms/:id/reports', loadData, checkFormByAuthor, reports.save);//save report
+	app.post('/api/forms/:id/reports', loadData, checkAuth, checkFormByAuthor, reports.save);//save report
 
 }
