@@ -2,10 +2,10 @@ var config = require('../config');
 var forms = require('../models/form');
 var HttpError = require('../error').HttpError;
 var mailer = require('../libs/mailer')
-
+var users = require('../models/user');
 
 exports.sendFormsPage = (req, res) => {
-	res.render('forms', { isAdmin: req.user.role === 'admin'}) 
+	res.render('forms', { isAdmin: users.isAdmin(req.user) }) 
 }
 
 exports.sendGeneratorPage = function (req, res) {
@@ -14,7 +14,7 @@ exports.sendGeneratorPage = function (req, res) {
 		page: 'Главная',
 		type: 'CREATE_FORM',
 		id: 'id',
-		isAdmin: req.user.role === 'admin'
+		isAdmin: users.isAdmin(req.user)
 	});
 };
 
@@ -24,19 +24,19 @@ exports.sendEditPage = function(req, res, next) {
 		type: 'EDIT_FORM',
 		id: req.params.id,
 		isUser: !!req.user,
-		isAdmin: req.user.role === 'admin'
+		isAdmin: users.isAdmin(req.user)
 	});
 }
 
 exports.sendPreviewPage = function(req, res, next) {
-	res.render('preview', { id: req.params.id, isAdmin: req.user.role === 'admin' });
+	res.render('preview', { id: req.params.id, isAdmin: users.isAdmin(req.user) });
 }
 
 
 exports.sendInterviewPage = function(req, res, next) {
 	res.render('interview', { id: req.params.id,
 		isUser: !!req.user,
-		isAdmin: req.user? req.user.role === 'admin' : false
+		isAdmin: (req.user? users.isAdmin(req.user) : false)
 	});
 }
 
@@ -109,28 +109,15 @@ exports.delete = function(req, res, next) {
 
 
 exports.send = function(req, res, next) {
-	var options = JSON.parse(req.body);
-	Promise.resolve()
-		.then( () => {
-			if(options.recipients) {
-				options.hash = req.params.id;
-				return mailer.send(options)
-			}
-		})
-		.then( () => {
-			['hash', 'recipients', 'topic', 'message'].forEach(key => delete(options[key]))
-			options.id = req.form.id;
-			options.sent = new Date();
-			console.log(options)
-			forms.update(req.form.id, options)
-		})
-		.then( () => {
-			
-		})
-		.then(result => {
-				res.sendStatus(200);
-			})
-		['catch'](next);
+	var body = JSON.parse(req.body);
+	// determine fields that should be updated
+	var options = { sent: new Date() }
+	if(body.allowrefill) options.allowrefill = true;
+	options.expires = body.expires? body.expires : null;
+
+	forms.update(req.form.id, options)
+		.then(result => res.sendStatus(200))
+		.catch(next);
 }
 
 
@@ -145,7 +132,7 @@ exports.getAll = function(req, res, next) {
 		.then(foundForms => {
 			if(foundForms) {
 				for(let i = 0; i < foundForms.length; i++) {
-					forms.modifyForClient(foundForms[i])
+					forms.modifyForClientWithoutItems(foundForms[i])
 				}
 				res.json(foundForms);
 			} else {

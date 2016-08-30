@@ -31,12 +31,7 @@ var logger = require('../libs/logger');
 // })
 
 
-module.exports = function (app) {
-	app.use( (req, res, next) => {
-		logger.INFO(req.method, 'URL:', req.url, 'TIME:', new Date());
-		next()
-	})
-	
+module.exports = function (app) {	
 	// app.get('/test', (req, res, next) => { res.render('test') } )
 	// app.get('/post', (req, res, next) => {
 	// 	var string = req.body

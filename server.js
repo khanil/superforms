@@ -10,6 +10,7 @@ var HttpError = require(__dirname + '/error').HttpError;
 var errorHandler = require(__dirname + '/error').errorHandler;
 var winston = require('winston')
 var app = express();
+var requestLogger = require('./middleware/requestLogger')
 var logger = require('./libs/logger');
 
 
@@ -37,6 +38,7 @@ sessOptions.store = new pgSession({
 
 app.use(session(sessOptions));
 
+app.use(requestLogger)
 require(__dirname + '/routes')(app);
 app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(errorHandler);

@@ -16,9 +16,7 @@ module.exports = new (winston.Logger)({
 	transports: [
 		new (winston.transports.Console)({ level:'ERROR', colorize: true} ),
 		new (require('winston-daily-rotate-file'))({
-			timestamp: function() {
-				return new Date();
-			}, 
+			timestamp: () => new Date(), 
 			level: 'ERROR', 
 			filename: path.join('logs', 'errors.log'), 
 			datePattern: 'yy-MM-dd' 

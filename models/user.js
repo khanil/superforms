@@ -130,6 +130,8 @@ function User() {
 	this.compare = function (password, hash) {
 		return bcrypt.compareSync(password, hash);
 	}
+
+	this.isAdmin = user => user.role === 'admin';
 	
 }
 

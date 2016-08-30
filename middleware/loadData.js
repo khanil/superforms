@@ -26,11 +26,14 @@ module.exports = function(req, res, next) {
 			})
 		) // write found results into 'req' object with corresponding model names
 		.then(result => {
+			let requiredDataString = 'REQUIRED DATA: ';
+			
 			requiredModels.forEach( (model, i) => {
 				req[model.name] = result[i];
-				console.log(!!result[i])
-				logger.INFO('REQUIRED DATA:', model.name + ': ' + (result[i]? result[i].id : 'NOT FOUND') )
+				requiredDataString += model.name + ': ' + (result[i]? result[i].id : 'NOT FOUND') + '; ';
 			})
+
+			logger.INFO(requiredDataString);
 			next();
 		})
 		['catch'](next);
