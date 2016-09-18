@@ -8,6 +8,10 @@ exports.sendFormsPage = (req, res) => {
 	res.render('forms', { isAdmin: users.isAdmin(req.user) }) 
 }
 
+exports.sendJournalPage = (req, res) => {
+	res.render('journal', { isAdmin: users.isAdmin(req.user) });
+}
+
 exports.sendGeneratorPage = function (req, res) {
 	res.render('generation&edit', { 
 		title: 'Создание формы',
@@ -48,6 +52,43 @@ exports.save = function(req, res, next) {
 		})
 		['catch'](next);
 };
+
+
+exports.getOne = function(req, res, next) {
+	res.json( forms.modifyForClient(req.form) );
+}
+
+
+exports.getAllForUser = function(req, res, next) {
+	forms.findAllForUser(req.user.id)
+		.then(foundForms => {
+			if(foundForms) {
+				for(let i = 0; i < foundForms.length; i++) {
+					forms.modifyForClientWithoutItems(foundForms[i])
+				}
+				res.json(foundForms);
+			} else {
+				throw new HttpError(404, 'Данная форма не найдена.');
+			}
+		})
+		['catch'](next);
+}
+
+exports.getAllForOrg = function(req, res, next) {
+	console.log(req.user)
+	forms.findAllForOrg(req.user.org_id)
+		.then(foundForms => {
+			if(foundForms) {
+				for(let i = 0; i < foundForms.length; i++) {
+					forms.modifyForJournal(foundForms[i])
+				}
+				res.json(foundForms);
+			} else {
+				throw new HttpError(404, 'Данная форма не найдена.');
+			}
+		})
+		['catch'](next);
+}
 
 
 exports.update = function(req, res, next) {
@@ -121,23 +162,3 @@ exports.send = function(req, res, next) {
 }
 
 
-exports.getOne = function(req, res, next) {
-	
-	res.json( forms.modifyForClient(req.form) );
-}
-
-
-exports.getAll = function(req, res, next) {
-	forms.findAll(req.user.id)
-		.then(foundForms => {
-			if(foundForms) {
-				for(let i = 0; i < foundForms.length; i++) {
-					forms.modifyForClientWithoutItems(foundForms[i])
-				}
-				res.json(foundForms);
-			} else {
-				throw new HttpError(404, 'Данная форма не найдена.');
-			}
-		})
-		['catch'](next);
-}

@@ -15,17 +15,29 @@ module.exports = function jsonToXlsx(json) {
 
 
 function prepare(json) {
-	var result = { cols: [], rows: [] };
+	var result = { cols: [], rows: json.responses.map(() => []) };
 	//cols
+	console.log(json.responses)
+	var delCount = 0;
 	for(var col = 0; col < json.questions.length; col++) {
 		if(json.questions[col]._type === 'question') {
 			result.cols.push( new Column(json.questions[col]) )
+			for(var row = 0; row < json.responses.length; row++) {
+				result.rows[row][col] = json.responses[row].list[col - delCount]
+			}
+		} else if(json.questions[col]._type === 'delimeter') {
+			result.cols.push( new Column({ title: `РАЗДЕЛ ${++delCount}`, type: 'string' }) )
+			for(var row = 0; row < json.responses.length; row++) {
+				result.rows[row][col] = json.questions[col].title
+			}
 		}
+		console.log(result)
+
 	}
 	//rows
-	for(var row = 0; row < json.responses.length; row++) {
-		result.rows.push(json.responses[row].list)
-	}
+	// for(var row = 0; row < json.responses.length; row++) {
+	// 	result.rows.push(json.responses[row].list)
+	// }
 	return result;
 }
 
@@ -46,7 +58,6 @@ function Column(question) {
 
 			case 'date':
 				self.type = 'date';
-				self.customWidth = "1";
 				self.beforeCellWrite = (row, cellData, eOpt) => {
 					if(!cellData){
 						eOpt.cellType = 'string';
@@ -55,6 +66,30 @@ function Column(question) {
 					return Math.floor(	(new Date(cellData) - originDate) / (24 * 60 * 60 * 1000) );
 				}
 				break;
+
+			// case 'datetime':
+			// 	self.type = 'date';
+			// 	self.beforeCellWrite = (row, cellData, eOpt) => {
+			// 		// if(!cellData){
+			// 		// 	eOpt.cellType = 'string';
+			// 		// 	return 'N/A';
+			// 		// }
+			// 		var date = new Date(cellData);
+			// 		return 42497.6777546296;
+			// 	}
+			// 	break;
+
+			// case 'time':
+			// 	self.type = 'time';
+			// 	self.beforeCellWrite = (row, cellData, eOpt) => {
+			// 		if(!cellData){
+			// 			eOpt.cellType = 'string';
+			// 			return 'N/A';
+			// 		}
+			// 		var date = new Date(cellData);
+			// 		return date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+			// 	}
+			// 	break;
 
 			default:
 				self.type = 'string';

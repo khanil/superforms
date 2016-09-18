@@ -5,10 +5,11 @@ body
 	header.forms
 		nav.container
 			- if (isAdmin)
-				a.pull-left.pre-active(href='/users') Пользователи
-			div.triangle.pull-left.triangle-left
-			a.pull-left.active Формы
-			div.triangle.pull-left.triangle-right
+				a(href='/users') Пользователи
+				a.pre-active(href='/journal') Журнал
+			div.triangle.triangle-left
+			a.active Формы
+			div.triangle.triangle-right
 			include includes/signout
 	
 	div.container.create-form

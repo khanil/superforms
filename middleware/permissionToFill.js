@@ -8,11 +8,17 @@ module.exports = function(req, res, next) {
 
 	if(req.session.completedForms)
 		if(!!~req.session.completedForms.indexOf(req.params.id))
-			return next(new HttpError(400, 'Вы уже заполняли данную форму.'));
+			return res.render('message', { title: 'Спасибо за Ваш ответ!', text: 'Вы уже заполнили данную форму.'} )
+			// return next(new HttpError(400, 'Вы уже заполняли данную форму.'));
 
 	if(req.form.expires)
 		if(Date.now() > new Date(req.form.expires).getTime()) 
-			return next(new HttpError(403, 'Срок приема ответов уже завершен.'));
+			return res.render('message', {
+				isUser: !!req.user,
+				title: 'Извините, срок приема ответов уже завершен.', 
+				text: 'Пожалуйста, свяжитесь с автором формы.'
+			})
+			// return next(new HttpError(403, 'Срок приема ответов уже завершен.'));
 	
 	next();
 }

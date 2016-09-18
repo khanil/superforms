@@ -6,14 +6,15 @@ body
 	header.forms
 		nav.container
 			- if (isAdmin)
-				a.pull-left(href='/users') Пользователи
-			a.pull-left.pre-active(href='/forms') Формы
-			div.triangle.pull-left.triangle-left
+				a(href='/users') Пользователи
+				a(href='/journal') Журнал
+			a.pre-active(href='/forms') Формы
+			div.triangle.triangle-left
 			- if (type === 'CREATE_FORM')
-				a.pull-left.active Создание формы
+				a.active Создание формы
 			- else
-				a.pull-left.active Редактирование формы
-			div.triangle.pull-left.triangle-right
+				a.active Редактирование формы
+			div.triangle.triangle-right
 			include includes/signout
 
 	div#root.container

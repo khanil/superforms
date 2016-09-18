@@ -1,6 +1,6 @@
 #Superforms
 
-Node.js web-app that allows to generate forms, send them, collect responses and export data to XLSX.
+Node.js web-app that allows to generate survey forms, send them, collect responses and export data to XLSX.
 
 #Installation
 

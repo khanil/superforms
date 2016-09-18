@@ -5,7 +5,8 @@ body
 	header.responses
 		nav.container
 			- if (isAdmin)
-				a.pull-left(href='/users') Пользователи
+				a(href='/users') Пользователи
+				a(href='/journal') Журнал
 			a(href='/forms') Формы
 			a.pre-active(href='/forms/' + id + '/responses') Ответы
 			div.triangle.triangle-left

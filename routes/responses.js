@@ -67,7 +67,7 @@ exports.getXlsx = function (req, res, next) {
 function getQuestionsFromTemplate(items) {
 	questions = [];
 	for(var i = 0; i < items.length; i++) {
-		if(items[i]._type === 'question') {
+		if(items[i]._type === 'question' || items[i]._type === 'delimeter') {
 			questions.push(items[i])
 		}
 	}

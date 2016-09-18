@@ -1,6 +1,7 @@
 var logger = require('../libs/logger');
 
 module.exports = (req, res, next) => {
+	// console.log(req.connection.remoteAddress)
 	var urlBegin = req.url.substring(0, 7);
 	if(urlBegin !== '/styles' && urlBegin !== '/script' && urlBegin !== '/fonts/' && urlBegin !== '/favico') {
 		var xhr = res.req.headers['x-requested-with'] === 'XMLHttpRequest';

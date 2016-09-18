@@ -11,10 +11,28 @@ function Form() {
 	 	return db.query('SELECT * FROM forms WHERE id = $1;', [id]);
 	}
 
-	this.findAll = function (user_id) {
+	this.findAllForUser = function (user_id) {
 		return db.query('SELECT * FROM forms WHERE user_id = $1;', [user_id], true);
 	}
 
+	this.findAllForOrg = function (org_id) {
+		return db.query(
+			'SELECT users.fullname AS author, forms.*, responses.resp_count\
+			FROM (\
+				SELECT forms.id, forms.user_id,\
+					forms.template::json->>\'title\' AS title,\
+					forms.template::json->>\'type\' AS type,\
+					forms.template::json->>\'description\' AS description,\
+					forms.created, forms.edited, forms.sent, forms.expires, forms.allowrefill\
+				FROM forms\
+				WHERE forms.user_id IN (\
+					SELECT user_id FROM user_roles WHERE organization_id = $1\
+				)\
+			) AS forms\
+			JOIN users ON users.id = forms.user_id\
+			LEFT JOIN (SELECT COUNT(*) AS resp_count, form_id FROM responses GROUP BY form_id) AS responses ON responses.form_id = forms.id\
+			ORDER BY forms.id DESC;', [org_id], true);
+	}
 
 	this.add = function (user, form) {
 		return db.query("INSERT INTO forms(user_id, template) values($1, $2) RETURNING id;", [user, form]);
@@ -29,14 +47,25 @@ function Form() {
 		return db.query("DELETE FROM forms WHERE id = $1;", [id]);
 	}
 
-	this.getHash = function (id) {
+	this.encode = function (id) {
 		return hashids.encode(id);
 	}
 
-	this.getIdFromParams = function (params) {
+	this.decode = function (params) {
 		return params.id?
 			+hashids.decode(params.id) :
 			null;
+	}
+
+	this.modifyForJournal = form => {
+		form.index = form.id;
+		form.id = hashids.encode(form.id);
+		form.user_id = user.encode(form.user_id);
+		form.type = this.rusTypes[form.type];
+		var author = form.author.split(' ');
+		form.author = `${author[0]} 
+			${author[1]? `${author[1][0]}.` : ''}
+			${author[2]? `${author[2][0]}.` : ''}`
 	}
 
 	this.modifyForClientWithoutItems = form => {
@@ -45,18 +74,24 @@ function Form() {
 		Object.assign(form, form.template)
 		delete(form.template)
 		form.id = hashids.encode(form.id);
-		form.user_id = user.getHash(form.user_id);
+		form.user_id = user.encode(form.user_id);
 	}
 
 	this.modifyForClient = function (form) {
 		form.id = hashids.encode(form.id);
-		form.user_id = user.getHash(form.user_id);
+		form.user_id = user.encode(form.user_id);
 		Object.renameProperty.call(form, 'template', 'scheme')
 		return form;
 	}
 
 	this.table = 'forms';
 	this.name = 'form';
+	this.rusTypes = {
+		monitoring: 'мониторинг',
+		interview: 'опрос',
+		voting: 'голосование',
+		survey: 'анкетирование',
+	}
 	
 }
 

@@ -1,6 +1,6 @@
 function User() {
 	var config = require('../config');
-	var bcrypt = require('bcryptjs');
+	var CryptoJS = require('../libs/cryptoJS')
 	var db = require('./db.js');
 	var Object = require('../libs/improvedObject');
 	var Hashids = require("hashids");
@@ -14,35 +14,34 @@ function User() {
 	this.table = 'users';
 	this.name = 'user';
 
-	this.findByMail = function (email) {
-		return db.query('SELECT * FROM users WHERE email = $1;', [email]);
-	}
+	// find user by id(number) or email(string)
+	this.findOne = unique => db.query(
+		'SELECT orgs.id AS org_id, orgs.name AS organization, users.*, roles.name AS role,\
+			status.name AS status, status.id AS status_id, logs.changed AS status_changed\
+		FROM user_status_logs AS logs\
+		JOIN users ON users.id = logs.user_id\
+		JOIN status ON status.id = logs.status_id\
+		JOIN user_roles ON user_roles.user_id = logs.user_id\
+		JOIN roles ON roles.id = user_roles.role_id\
+		JOIN organizations AS orgs ON orgs.id = user_roles.organization_id ' + 
+		(typeof unique === 'number'?
+					'WHERE logs.changed = (SELECT MAX(changed) FROM user_status_logs logs WHERE logs.user_id = $1);' :
+					'WHERE users.email = $1 AND logs.changed = (SELECT MAX(changed) FROM user_status_logs logs WHERE logs.user_id = users.id);'), 
+		[unique]
+	)
 
-	this.findOne = function (id) {
-		return db.query(
-			'SELECT users.*, roles.name AS role, status.name AS status, status.id AS status_id, logs.changed AS status_changed\
-			FROM user_status_logs AS logs\
-			JOIN users ON users.id = logs.user_id\
-			JOIN status ON status.id = logs.status_id\
-			JOIN user_roles ON user_roles.user_id = logs.user_id\
-			JOIN roles ON roles.id = user_roles.role_id\
-			WHERE logs.changed = (SELECT MAX(changed) FROM user_status_logs logs WHERE logs.user_id = $1);', 
-			[id]);
-	}
 
-
-	this.findAll = () => {
-		return db.query(
-			'SELECT users.id, users.fullname, users.email, roles.name AS role,\
-				status.name AS status, logs.changed AS status_changed\
-			FROM user_status_logs AS logs\
-			JOIN users ON users.id = logs.user_id\
-			JOIN status ON status.id = logs.status_id\
-			JOIN user_roles ON user_roles.user_id = logs.user_id\
-			JOIN roles ON roles.id = user_roles.role_id\
-			WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs logs GROUP BY user_id);', 
-			[], true);
-	}
+	this.findAll = () => db.query(
+		'SELECT users.id, users.fullname, users.email, roles.name AS role,\
+			status.name AS status, logs.changed AS status_changed\
+		FROM user_status_logs AS logs\
+		JOIN users ON users.id = logs.user_id\
+		JOIN status ON status.id = logs.status_id\
+		JOIN user_roles ON user_roles.user_id = logs.user_id\
+		JOIN roles ON roles.id = user_roles.role_id\
+		WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs logs GROUP BY user_id);', 
+		[], true
+	)
 
 	// SELECT users.*, status.name AS status, status.id AS status_id,
 	// 			logs.changed AS status_changed
@@ -50,36 +49,34 @@ function User() {
 	// 		WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs GROUP BY user_id)
 	// 		AND users.id = logs.user_id AND logs.status_id = status.id;
 
-	this.add = function (user) {
-		var salt = bcrypt.genSaltSync(10);
-		var hash = bcrypt.hashSync(user.password, salt);
-		return db.query('INSERT INTO users(fullname, email, password) VALUES($1, $2, $3) RETURNING id;', [user.fullname, user.email, hash]);
-	}
+	this.add = user => db.query(
+		'INSERT INTO users(fullname, email, hash) VALUES($1, $2, $3) RETURNING id;', 
+		[user.fullname, user.email, user.salt + '$' + user.password]
+	)
 
-	this.addRole = (user_id, role) => {
-		return role? 
-			db.query(
-				'INSERT INTO user_roles(user_id, role_id)\
-				 VALUES($1, (SELECT id FROM roles WHERE name = $2))\
-				 RETURNING user_id AS id;', [user_id, role]
-			) :
-			db.query(
-				'INSERT INTO user_roles(user_id) VALUES($1)\
-				 RETURNING user_id AS id;', [user_id]
-			);
-	}
+	this.addRole = (user_id, role='employee') => db.query(
+		'INSERT INTO user_roles(user_id, role_id)\
+		VALUES($1, (SELECT id FROM roles WHERE name = $2))\
+		RETURNING user_id AS id;', [user_id, role]
+	)
 
-	this.changeStatus = function (id, status) {
-		return status?
-			db.query(
-				'INSERT INTO user_status_logs(user_id, status_id)\
-				 VALUES($1, (SELECT id FROM status WHERE name = $2))\
-				 RETURNING *', [id, status]
-			) :
-			db.query(
-				'INSERT INTO user_status_logs(user_id) VALUES($1)\
-				 RETURNING *', [id]
-			);
+
+	this.changeStatus = (user_id, status='waiting') => db.query(
+		'INSERT INTO user_status_logs(user_id, status_id)\
+		VALUES($1, (SELECT id FROM status WHERE name = $2))\
+		RETURNING *;', [user_id, status]
+	)
+
+	this.findToken = (token) => db.query(
+		'SELECT * FROM registration_tokens WHERE token=$1;', [token]
+	)
+
+	this.addRegConfirm = (user_id) => {
+		var regToken = this.genSalt(64)
+		return db.query(
+			'INSERT INTO registration_tokens(user_id, token)\
+			VALUES($1, $2) RETURNING token;', [user_id, regToken]
+		)
 	}
 
 	this.update = (id, updatedFields) => {
@@ -91,21 +88,40 @@ function User() {
 		return db.query('DELETE FROM users WHERE id = $1;', [id]);
 	}
 
-	this.getHash = function (id) {
+	this.compare = function (regHash, hash, salt) {
+		hash = hash.split('$')[1];
+		return regHash === CryptoJS.HmacSHA3(hash, salt).toString();
+	}
+
+	this.encode = function (id) {
 		if(typeof(id) === 'number') {
 			return hashids.user.encode(id);
 		}
 		throw new Error('could not get user\'s hash');
 	}
 
-	this.getIdFromParams = function (params) {
-		return params.user_id?
-			+hashids.user.decode(params.user_id) :
-			null;
+	this.decode = function (params) {
+		return typeof params === 'string'?
+			+hashids.user.decode(params) :
+			(params.user_id?
+				+hashids.user.decode(params.user_id) :
+				null)
 	}
 
-	this.getID = function (hash) {
-		return +hashids.user.decode(hash);
+	this.decrypt = (hash, salt) => {
+		var user = CryptoJS.AES.decrypt(hash, salt).toString(CryptoJS.enc.Utf8);
+		if(user) {
+			return user;
+		}
+		throw new Error('incorrect user\'s hash')
+	}
+
+	this.genSalt = (length=16) => {
+		return CryptoJS.lib.WordArray.random(length).toString()
+	}
+
+	this.getSalt = (hash) => {
+		return hash.split('$')[0];
 	}
 
 	this.getRegConfirmHash = function (userStatusRow) {
@@ -125,10 +141,6 @@ function User() {
 			return statusLog;
 		}
 		throw new Error('invalid registration confirmation hash')
-	}
-
-	this.compare = function (password, hash) {
-		return bcrypt.compareSync(password, hash);
 	}
 
 	this.isAdmin = user => user.role === 'admin';

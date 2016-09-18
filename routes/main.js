@@ -1,7 +1,7 @@
 var path = require('path');
 
 exports.get = function (req, res, next) {
-	(req.user) ?
+	req.user?
 		res.redirect('/forms') :
-		res.render('signin');
+		require('../routes/users').sendSignInPage(req, res)
 };

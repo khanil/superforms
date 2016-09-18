@@ -4,11 +4,12 @@ body
 	header.responses
 		nav.container
 			- if (isAdmin)
-				a.pull-left(href='/users') Пользователи
-			a.pull-left.pre-active(href='/forms') Формы
-			div.triangle.pull-left.triangle-left
-			a.pull-left.active Ответы
-			div.triangle.pull-left.triangle-right
+				a(href='/users') Пользователи
+				a(href='/journal') Журнал
+			a.pre-active(href='/forms') Формы
+			div.triangle.triangle-left
+			a.active Ответы
+			div.triangle.triangle-right
 			include includes/signout
 					
 	div#root.container

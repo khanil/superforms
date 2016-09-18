@@ -4,7 +4,7 @@ module.exports = function(req, res, next) {
 
 		res.status(err.status);
 		if (res.req.headers['x-requested-with'] === 'XMLHttpRequest') {
-			res.send(err.message);
+			res.status(err.status).send(err.message);
 		} else {
 			res.render("error", { 
 				error: err, 

@@ -18,11 +18,11 @@ module.exports = function(req, res, next) {
 	}
 	// determine models which data search will be in
 	var requiredModels = models.filter( model => { 
-		return model.getIdFromParams(req.params) 
+		return model.decode(req.params) 
 	})
 	// async search the database
 	Promise.all(requiredModels.map( model => {
-				return model.findOne( model.getIdFromParams(req.params) ) 
+				return model.findOne( model.decode(req.params) ) 
 			})
 		) // write found results into 'req' object with corresponding model names
 		.then(result => {

@@ -2,21 +2,22 @@ include includes/head
 	title Заполнение формы | SuperForms
 	link(rel="stylesheet", href="/styles/react-widgets.css")
 body
-	header.forms
+	header.interview
 		nav.container
 			- if (isUser)
 				- if (isAdmin)
-					a.pull-left(href='/users') Пользователи
-				a.pull-left.pre-active(href='/forms') Формы
-				div.triangle.pull-left.triangle-left
-				a.pull-left.active Заполнение формы
-				div.triangle.pull-left.triangle-right
+					a(href='/users') Пользователи
+					a(href='/journal') Журнал
+				a.pre-active(href='/forms') Формы
+				div.triangle.triangle-left
+				a.active Заполнение формы
+				div.triangle.triangle-right
 				include includes/signout
 
 			- else
-				div.triangle.pull-left.triangle-left
-				a.pull-left.active Заполнение формы
-				div.triangle.pull-left.triangle-right
+				div.triangle.triangle-left
+				a.active Заполнение формы
+				div.triangle.triangle-right
 				include includes/signin
 
 	div#root.container

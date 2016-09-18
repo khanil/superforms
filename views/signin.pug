@@ -2,17 +2,17 @@ include includes/head
 	title Вход | SuperForms
 body.no-header
 	#signin.container
-		div.col-md-3
-		div.col-md-6
-			h3 Введите свой логин и пароль:
+		div.col-sm-3
+		div.col-sm-6
+			h3 Введите логин и&nbsp;пароль:
 
 			#error.alert.alert-danger.hide
 				a(href="#", class="close", data-dismiss="alert", aria-label="close") ×
 				p
-			input#login.form-control(type='text' placeholder="Электронная почта" required)
-			input#password.form-control(type='password' placeholder="Пароль" required)
+			input#login.form-control(type='text' placeholder="Электронная почта" autofocus)
+			input#password.form-control(type='password' placeholder="Пароль")
 
 			button#submit.btn.btn-primary.btn-block Войти
 
-		div.col-md-3
+		div.col-sm-3
 	script(type="text/javascript", src="/scripts/signin.js")

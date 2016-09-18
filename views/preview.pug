@@ -5,14 +5,16 @@ body
 	header.forms
 		nav.container
 			- if (isAdmin)
-				a.pull-left(href='/users') Пользователи
-			a.pull-left.pre-active(href='/forms') Формы
-			div.triangle.pull-left.triangle-left
-			a.pull-left.active Просмотр формы
-			div.triangle.pull-left.triangle-right
+				a(href='/users') Пользователи
+				a(href='/journal') Журнал
+			a.pre-active(href='/forms') Формы
+			div.triangle.triangle-left
+			a.active Просмотр формы
+			div.triangle.triangle-right
 			include includes/signout
-
+	//- div.col-md-4
 	div#root.container
+	//- div.col-md-4
 	script#info(type="application/json").
 		{
 			"type": "PREVIEW_FORM",

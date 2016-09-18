@@ -17,19 +17,20 @@
 	},
 	"hash" : {
 		"user" : { "salt" : "Salt is used to", "length" : 8 },
-		"regConfirm" : { "length" : 64 },
+		"regConfirm" : { "length" : 128 },
 		"form" : { "salt" : "generate unique alphabets.", "length" : 9	},
 		"response" : { "salt" : "The alphabet is also", "length" : 10 },
 		"report" : { "salt" : "shuffled based on salt.", "length" : 11 }
 	},
 	"nodemailer" : {
-		"options": {
-			"service": "Yandex", 
-			"auth": { 
-				"user": "",
-				"pass": ""
-			}
-		}
+			"host": "smtp.mosk.spb.ru",
+			"port": 465,
+			"secure": true,
+			"auth": {
+				"user": "g-f@mosk.spb.ru",
+				"pass": "U3z9O0z4"
+			},
+			"tls":{ "rejectUnauthorized": false	}
 	},
 	"multer" : {
 		"destination" : "./public/uploads",

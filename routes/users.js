@@ -3,48 +3,87 @@ var forms = require('../models/form');
 var HttpError = require('../error').HttpError;
 var SmtpError = require('../error').SmtpError;
 var mailer = require('../libs/mailer')
+var CryptoJS = require('../libs/cryptoJS')
 
 
-exports.signIn = function (req, res, next) {
-	var user = JSON.parse(req.body);
+exports.sendSignInPage = (req, res) => {
+	res.render('signin');
+}
 
-	users.findByMail(user.email)
+exports.sendSignInSalt = (req, res, next) => {
+	users.findOne(req.body)
 		.then(foundUser => {
-			if(foundUser && users.compare(user.password, foundUser.password)) {
-				req.session.user = users.getHash(foundUser.id);
-				res.sendStatus(200);
+			if(foundUser) {
+				var options = {
+					email: foundUser.email,
+					salt: users.getSalt(foundUser.hash),
+					temporarySalt: users.genSalt()
+				}
+				req.session.signin = options;
+				res.send(options.salt + '$' + options.temporarySalt)
+				setTimeout(() => delete(req.session.signin), 15000)
 			} else {
 				next(new HttpError(422, 'Неверный логин или пароль. Пожалуйста, попробуйте снова.'));
 			}
 		})
 		.catch(next);
+}
+
+exports.signIn = function (req, res, next) {
+	var user = req.session.signin
+	delete(req.session.signin)
+	if(!user) return next()
+	
+	user.hash = req.body
+	users.findOne(user.email)
+		.then(foundUser => {
+			var err;
+			if(foundUser && users.compare(user.hash, foundUser.hash, user.temporarySalt)) {
+				switch(foundUser.status) {
+					case 'active': 
+						req.session.user = users.encode(foundUser.id);
+						res.sendStatus(200);
+						return;
+					case 'waiting': err = new HttpError(422, 'Требуется подтверждение регистрации.'); break;
+					case 'banned': err = new HttpError(422, 'Ваш аккаунт заблокирован. Пожалуйста, свяжитесь с администратором.')
+				}
+			}
+			throw err || new HttpError(422, 'Неверный логин или пароль. Пожалуйста, попробуйте снова.');
+		})
+		.catch(next);
 };
 
 
-exports.signUp = function (req, res, next) {
-	var user;
+exports.sendSignUpSalt = (req, res, next) => {
+	var options = {
+		salt: users.genSalt(),
+		temporarySalt: users.genSalt()
+	}
+	req.session.signup = options;
+	res.send(options.salt + '$' + options.temporarySalt)
+	setTimeout(() => delete(req.session.signup), 15000)
+}
 
-	Promise.resolve()
-		.then( () => user = JSON.parse(req.body)) // parse request body
-		.then( users.add ) // add the user into db
-		.then( newUser => {
+exports.signUp = function (req, res, next) {
+	var user, info = req.session.signup
+	if(!info) return next()
+
+	delete(req.session.signup)
+
+	Promise.resolve(users.decrypt(req.body, info.temporarySalt))
+		.then(JSON.parse)
+		.then(newUser =>  user = Object.assign(newUser, info))
+		// .then(() => user = JSON.parse(req.body)) // parse request body
+		.then(users.add) // add the user into db
+		.then(newUser => {
 			user.id = newUser.id; // write id to the enclosing object 'user'
-			user.role = 'employee'
-			return users.addRole(newUser.id)} )
-		.then( () => {
-			user.status = 'active';
-			return users.changeStatus(user.id, user.status) // add status into db
-		})
-		// get hash for registry confirmation url and write it to the enclosing object 'user'
-		.then( statusLogRow => user.regConfirmHash = users.getRegConfirmHash(statusLogRow) )
-		//.then( () => mailer.sendRegConfirm(user) ) // send a letter for registry confirmation
-		.then( () => { 
-			user.id = users.getHash(user.id);
-			delete(user.password)
-			delete(user.regConfirmHash)
-			res.json(user);
-		})
-		.catch( err => {
+			return users.addRole(newUser.id, user.role)} )
+		.then(() => users.changeStatus(user.id)) // add status into db
+		//  
+		.then(() => users.addRegConfirm(user.id))
+		.then(registration => mailer.sendRegConfirm(req.user, user, registration.token)) // send a letter for registry confirmation
+		.then(() => res.send(users.encode(user.id)))
+		.catch(err => {
 			if(err instanceof SmtpError) {
 				users.delete(user.id)	
 			}
@@ -54,26 +93,22 @@ exports.signUp = function (req, res, next) {
 };
 
 
-// exports.confirmRegistration = function (req, res, next) {
-// 	var statusLogRow; // a row from 'user_status_logs' table
-// 	Promise.resolve()
-// 		.then( () => statusLogRow = users.decodeRegConfirmHash(req.params.confirm_id))
-// 		.then( () => users.findOne(statusLogRow.user_id))
-// 		.then( foundUser => {
-// 			if(foundUser && foundUser.status_id === statusLogRow.status_id) 
-// 				if(foundUser.status_changed.getTime() === statusLogRow.changed){
-// 					return foundUser;
-// 				}
-// 			throw new HttpError(404); // the user isn't found or is already active 
-// 		})
-// 		.then( foundUser => users.changeStatus(foundUser.id, 'active'))
-// 		.then( () => { 
-// 			req.session.user = statusLogRow.id;
-// 			res.render('message', { title : 'Ваш аккаунт успешно активирован :)', text : 'Удачных опросов!' }); 
-// 		})
-// 		['catch'](next);
-
-// }
+exports.confirmRegistration = function (req, res, next) {
+	users.findToken(req.params.token)
+		.then(regConfirm => {
+			if(regConfirm) {
+				return users.changeStatus(regConfirm.user_id, 'active')
+			}
+			throw new HttpError(404, 'Страница не найдена.')
+		})
+		.then(() => { 
+			res.render('message', {
+				title : 'Ваш аккаунт успешно активирован :)', 
+				text : 'Удачных опросов!' 
+			}); 
+		})
+		.catch(next)
+};
 	
 
 exports.signOut = function (req, res, next) {
@@ -92,7 +127,7 @@ exports.getAll = (req, res, next) => {
 	users.findAll()
 		.then( foundUsers => {
 			for(let i = 0; i < foundUsers.length; i++) {
-				foundUsers[i].id = users.getHash(foundUsers[i].id);
+				foundUsers[i].id = users.encode(foundUsers[i].id);
 			}
 			res.json(foundUsers)
 		})

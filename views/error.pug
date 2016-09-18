@@ -5,8 +5,9 @@ body
 		nav.container
 			- if (isUser)
 				- if (isAdmin)
-					a.pull-left(href='/users') Пользователи
-				a.pull-left(href='/forms') Формы
+					a(href='/users') Пользователи
+					a(href='/journal') Журнал
+				a(href='/forms') Формы
 				include includes/signout
 			- else 
 				include includes/signin

@@ -22,7 +22,7 @@ function Response() {
 	  return db.query("INSERT INTO responses(list, form_id) values($1, $2) RETURNING id", [answers, formID]);
 	}
 
-	this.getIdFromParams = function (params) {
+	this.decode = function (params) {
 		return params.response_id?
 			+hashids.decode(params.response_id) :
 			null;
