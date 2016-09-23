@@ -56,36 +56,35 @@ function User() {
 
 	// find user by id(number) or email(string)
 	this.findOne = unique => db.query(
-		'SELECT orgs.id AS org_id, orgs.name AS organization, users.*, roles.name AS role,\
-			status.name AS status, status.id AS status_id, logs.changed AS status_changed\
-		FROM user_status_logs AS logs\
-		JOIN users ON users.id = logs.user_id\
-		JOIN status ON status.id = logs.status_id\
-		JOIN user_roles ON user_roles.user_id = logs.user_id\
-		JOIN roles ON roles.id = user_roles.role_id\
-		JOIN organizations AS orgs ON orgs.id = user_roles.organization_id ' + 
-		(typeof unique === 'number'?
-					'WHERE logs.changed = (SELECT MAX(changed) FROM user_status_logs logs WHERE logs.user_id = $1);' :
-					'WHERE users.email = $1 AND logs.changed = (SELECT MAX(changed) FROM user_status_logs logs WHERE logs.user_id = users.id);'), 
+		`SELECT orgs.id AS org_id, orgs.name AS organization, users.*, roles.name AS role,
+			status.name AS status, status.id AS status_id, logs.changed AS status_changed
+		FROM user_status_logs AS logs
+		JOIN users ON users.id = logs.user_id
+		JOIN status ON status.id = logs.status_id
+		JOIN user_roles ON user_roles.user_id = logs.user_id
+		JOIN roles ON roles.id = user_roles.role_id
+		JOIN organizations AS orgs ON orgs.id = user_roles.organization_id ${typeof unique === 'number'?
+			'WHERE logs.changed = (SELECT MAX(changed) FROM user_status_logs logs WHERE logs.user_id = $1);' :
+			'WHERE users.email = $1 AND logs.changed = (SELECT MAX(changed) FROM user_status_logs logs WHERE logs.user_id = users.id);'}`,
 		[unique]
 	)
 
 
 	this.findAll = () => db.query(
-		'SELECT users.id, concat(users.surname, users.name, users.patronymc) AS fullname, users.email, roles.name AS role,\
-			status.name AS status, logs.changed AS status_changed\
-		FROM user_status_logs AS logs\
-		JOIN users ON users.id = logs.user_id\
-		JOIN status ON status.id = logs.status_id\
-		JOIN user_roles ON user_roles.user_id = logs.user_id\
-		JOIN roles ON roles.id = user_roles.role_id\
-		WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs logs GROUP BY user_id);', 
+		`SELECT users.id, concat(users.surname, ' ', users.name, ' ', users.patronymic) AS fullname, users.email, roles.name AS role,
+			status.name AS status, logs.changed AS status_changed
+		FROM user_status_logs AS logs
+		JOIN users ON users.id = logs.user_id
+		JOIN status ON status.id = logs.status_id
+		JOIN user_roles ON user_roles.user_id = logs.user_id
+		JOIN roles ON roles.id = user_roles.role_id
+		WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs logs GROUP BY user_id);`, 
 		[], true
 	)
 
 
 	this.add = user => {
-		user.password = this.genPassword()
+		user.password = user.password || this.genPassword()
 		var salt = this.genSalt()
 		var hash = CryptoJS.SHA3(user.password, salt)
 		return db.query(

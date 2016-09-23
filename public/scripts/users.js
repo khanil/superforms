@@ -108,8 +108,8 @@
 			surname: function surname(value) {
 				return value ? '' : 'Введите фамилию';
 			},
-			patronymic: function patronymic(value) {
-				return value ? '' : 'Введите отчество';
+			patronymic: function patronymic() {
+				return '';
 			}
 		},
 
@@ -157,7 +157,7 @@
 		findErrors: function findErrors() {
 			var errors = this.state.errors;
 			for (var key in errors) {
-				if (errors[key] || !this.state.user[key]) return true;
+				if (errors[key] || !(key === 'patronymic' || this.state.user[key])) return true;
 			}
 			return null;
 		},
@@ -166,7 +166,6 @@
 			var _this2 = this;
 
 			var user = this.state.user;
-			console.log(user);
 			sendRequest('GET', 'api/users/signup').then(function (response) {
 				var hash = CryptoJS.AES.encrypt(JSON.stringify(user), response).toString();
 				return sendRequest('POST', '/api/users/signup', hash);
@@ -181,8 +180,7 @@
 				});
 			}).catch(function (err) {
 				_this2.setState({
-					notification: err,
-					user: { email: '', name: '', surname: '', patronymic: '' }
+					notification: err
 				});
 			});
 		},

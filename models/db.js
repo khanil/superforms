@@ -58,8 +58,8 @@ exports.create = () => {
 		createSessionsTable(),
 		createStatusTableAndFill(),
 		createRolesTableAndFill(),
-		createRegConfirmTable(),
-		createTables()
+		createTables(),
+		createRegConfirmTable()
 	])
 	.catch(logger.ERROR);
 }

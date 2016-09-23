@@ -17,7 +17,7 @@ function Form() {
 
 	this.findAllForOrg = function (org_id) {
 		return db.query(
-			'SELECT users.fullname AS author, forms.*, responses.resp_count\
+			'SELECT users.name, users.surname, users.patronymic, forms.*, responses.resp_count\
 			FROM (\
 				SELECT forms.id, forms.user_id,\
 					forms.template::json->>\'title\' AS title,\
@@ -58,6 +58,8 @@ function Form() {
 	}
 
 	this.modifyForJournal = form => {
+		form.author = `${form.surname} ${form.name[0]}.${form.patronymic? form.patronymic[0] + '.' : ''}`
+		// form.author = form.surname + ' ' + form.name[0]  + '.' + form.patronymic? form.patronymic[0] + '.' : ''
 		form.index = form.id;
 		form.id = hashids.encode(form.id);
 		form.user_id = user.encode(form.user_id);
@@ -74,10 +76,10 @@ function Form() {
 	}
 
 	this.modifyForClient = function (form) {
-		form.id = hashids.encode(form.id);
-		form.user_id = user.encode(form.user_id);
+		form.id = hashids.encode(form.id)
+		form.user_id = user.encode(form.user_id)
 		Object.renameProperty.call(form, 'template', 'scheme')
-		return form;
+		return form
 	}
 
 	this.table = 'forms';

@@ -15,7 +15,6 @@ require('../models/db.js');
 var users = require('./users.js');
 var forms = require('./forms.js');
 var responses = require('./responses.js');
-var reports = require('./reports');
 var loadData = require('../middleware/loadData');
 // logger
 var logger = require('../libs/logger');
@@ -93,11 +92,10 @@ module.exports = function (app) {
 	app.post('/api/forms/:id/send', loadData, checkAuth, checkFormByAuthor, forms.send);
 
 
-	app.get('/api/forms/:id/responses', loadData,  checkAuth, checkFormByAuthor, responses.getAll);//get all responses
+	app.get('/api/forms/:id/responses', loadData,  checkAuth, checkFormByOrg, responses.getAll);//get all responses
 	app.get('/api/forms/:id/responses/xlsx', loadData, checkAuth, checkFormByAuthor, responses.getXlsx);//get all responses
 	app.get('/api/forms/:id/responses/:response_id', loadData, checkAuth, 
 		checkFormByAuthor, checkResponseByForm, responses.getOne);//get one response by id 
 	app.post('/api/forms/:id/responses', loadData, permissionToFill, responses.save);//save interview (filled form) 
-	app.post('/api/forms/:id/reports', loadData, checkAuth, checkFormByAuthor, reports.save);//save report
 
 }

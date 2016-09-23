@@ -16,7 +16,7 @@ exports.sendRegConfirm = (admin, user, regToken) => {
 		subject: 'Подтверждение регистрации', // Subject line 
 		html: 
 			`<h3>Добрый день, ${user.name} ${user.patronymic}!<h3> 
-			<p>${admin.surname} ${admin.name[0] || ''} ${admin.patronymic[0] || ''} зарегистрировал Вас в сервисе Form Generator.</p>
+			<p>${admin.surname} ${admin.name[0]}.${admin.patronymic[0] + '.' || ''} зарегистрировал Вас в сервисе Form Generator.</p>
 			<p>Логин: ${user.email}</p>
 			<p>Пароль: ${user.password}</p>
 			<p>Чтобы завершить регистрацию, пожалуйста, перейдите по следующей ссылке:</p>

@@ -2,7 +2,7 @@
 	"port" : 3000,
 	"domain" : "http://localhost:3000/",
 	"pg" : {
-		"url" : "postgres://hellmaker:justdoit@localhost:5432/sf",
+		"url" : "postgres://user:password@localhost:5432/sf",
 		"poolIdleTimeout" : 30000
 	},
 	"session" : {
@@ -23,7 +23,7 @@
 		"report" : { "salt" : "shuffled based on salt.", "length" : 11 }
 	},
 	"nodemailer" : {
-			"host": "smtp.mosk.spb.ru",
+			"host": "",
 			"port": 465,
 			"secure": true,
 			"auth": {

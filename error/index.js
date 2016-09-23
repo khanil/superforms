@@ -34,7 +34,6 @@ exports.DatabaseError = createCustomError(DatabaseError, "DatabaseError");
 
 // main error handler 
 exports.errorHandler = function (err, req, res, send) {
-	console.log('error handler log:\n', err, err.constructor);
 	var requestData = { method: req.method, url: req.url };
 	var level;
 

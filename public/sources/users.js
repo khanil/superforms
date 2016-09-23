@@ -48,7 +48,7 @@ var Registration = React.createClass({
 			'Введите адрес электронной почты',
 		name: value => value? '' : 'Введите имя',
 		surname: value => value? '' : 'Введите фамилию', 
-		patronymic: value => value? '' : 'Введите отчество' 
+		patronymic: () => ''
 	},
 
 	getInitialState: () => ({
@@ -89,7 +89,7 @@ var Registration = React.createClass({
 	findErrors: function() {
 		var errors = this.state.errors
 		for(let key in errors) {
-			if(errors[key] || !this.state.user[key])
+			if(errors[key] || !(key === 'patronymic' || this.state.user[key]))
 				return true
 		}
 		return null
@@ -97,7 +97,6 @@ var Registration = React.createClass({
 
 	submit: function() {
 		var user = this.state.user
-			console.log(user)
 			sendRequest('GET', 'api/users/signup')
 				.then(response => {
 					var hash = CryptoJS.AES.encrypt(JSON.stringify(user), response).toString()
@@ -117,8 +116,7 @@ var Registration = React.createClass({
 				})
 				.catch(err => {
 					this.setState({ 
-						notification: err,
-						user: { email: '', name: '', surname: '', patronymic: '' }
+						notification: err
 					})
 				})
 	},
