@@ -7,6 +7,7 @@ var checkAuth = require('../middleware/checkAuth');
 var checkNotAuth = require('../middleware/checkNotAuth');
 var isAdmin = require('../middleware/isAdmin');
 var permissionToFill = require('../middleware/permissionToFill');
+var checkFormByOrg = require('../middleware/checkFormByOrg')
 var checkFormByAuthor = require('../middleware/checkFormByAuthor');// find the form and compare user id with user id from session
 var checkResponseByForm = require('../middleware/checkResponseByForm');
 // models
@@ -54,10 +55,10 @@ module.exports = function (app) {
 	// app.post('/forms/uploadfiles', loadData, checkAuth, 
 	// 	upload.array('files', config.get('multer:maxCount')), forms.uploadFiles);
 	app.get('/forms', loadData, checkAuth, forms.sendFormsPage)
-	app.get('/journal', loadData, checkAuth, isAdmin, forms.sendJournalPage);
+	app.get('/journal', loadData, checkAuth, forms.sendJournalPage);
 	app.get('/forms/new', loadData, checkAuth, forms.sendGeneratorPage);// get form's generator page
 	app.get('/forms/:id/edit', loadData, checkAuth, checkFormByAuthor, forms.sendEditPage);// send form's edit page for author
-	app.get('/forms/:id/preview', loadData, checkAuth, checkFormByAuthor, forms.sendPreviewPage);
+	app.get('/forms/:id/preview', loadData, checkAuth, checkFormByOrg, forms.sendPreviewPage);
 	app.get('/forms/:id', loadData, permissionToFill, forms.sendInterviewPage);// send 'interview' page
 	app.get('/success', loadData, (req, res, next) => { 
 		res.render('message', {
@@ -67,10 +68,9 @@ module.exports = function (app) {
 			text: 'Форма успешно заполнена.'
 		})
 	})
-	app.get('/forms/:id/responses', loadData, checkAuth, checkFormByAuthor, responses.sendResponsesPage);//send responses page
+	app.get('/forms/:id/responses', loadData, checkAuth, checkFormByOrg, responses.sendResponsesPage);//send responses page
 	app.get('/forms/:id/responses/:response_id', loadData, checkAuth,
-		checkFormByAuthor, checkResponseByForm, responses.sendResponsePage);//get one response by id 
-	app.get('/forms/:id/reports', loadData, checkAuth, checkFormByAuthor, reports.getAllByForm);//get all reports by form id
+		checkFormByOrg, checkResponseByForm, responses.sendResponsePage);//get one response by id 
 
 
 

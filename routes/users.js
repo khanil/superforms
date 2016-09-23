@@ -55,12 +55,9 @@ exports.signIn = function (req, res, next) {
 
 
 exports.sendSignUpSalt = (req, res, next) => {
-	var options = {
-		salt: users.genSalt(),
-		temporarySalt: users.genSalt()
-	}
+	var options = {	temporarySalt: users.genSalt() }
 	req.session.signup = options;
-	res.send(options.salt + '$' + options.temporarySalt)
+	res.send(options.temporarySalt)
 	setTimeout(() => delete(req.session.signup), 15000)
 }
 
@@ -71,13 +68,11 @@ exports.signUp = function (req, res, next) {
 	delete(req.session.signup)
 
 	Promise.resolve(users.decrypt(req.body, info.temporarySalt))
-		.then(JSON.parse)
-		.then(newUser =>  user = Object.assign(newUser, info))
-		// .then(() => user = JSON.parse(req.body)) // parse request body
+		.then(newUser => user = JSON.parse(newUser))
 		.then(users.add) // add the user into db
 		.then(newUser => {
 			user.id = newUser.id; // write id to the enclosing object 'user'
-			return users.addRole(newUser.id, user.role)} )
+			return users.addRole(user.id, user.role)} )
 		.then(() => users.changeStatus(user.id)) // add status into db
 		//  
 		.then(() => users.addRegConfirm(user.id))

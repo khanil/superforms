@@ -12,7 +12,7 @@ function Form() {
 	}
 
 	this.findAllForUser = function (user_id) {
-		return db.query('SELECT * FROM forms WHERE user_id = $1;', [user_id], true);
+		return db.query('SELECT * FROM forms WHERE user_id = $1 ORDER BY id DESC;', [user_id], true);
 	}
 
 	this.findAllForOrg = function (org_id) {
@@ -61,11 +61,6 @@ function Form() {
 		form.index = form.id;
 		form.id = hashids.encode(form.id);
 		form.user_id = user.encode(form.user_id);
-		form.type = this.rusTypes[form.type];
-		var author = form.author.split(' ');
-		form.author = `${author[0]} 
-			${author[1]? `${author[1][0]}.` : ''}
-			${author[2]? `${author[2][0]}.` : ''}`
 	}
 
 	this.modifyForClientWithoutItems = form => {
@@ -73,8 +68,9 @@ function Form() {
 		// copy form template to the object first level
 		Object.assign(form, form.template)
 		delete(form.template)
-		form.id = hashids.encode(form.id);
-		form.user_id = user.encode(form.user_id);
+		form.index = form.id
+		form.id = hashids.encode(form.id)
+		form.user_id = user.encode(form.user_id)
 	}
 
 	this.modifyForClient = function (form) {
@@ -86,12 +82,6 @@ function Form() {
 
 	this.table = 'forms';
 	this.name = 'form';
-	this.rusTypes = {
-		monitoring: 'мониторинг',
-		interview: 'опрос',
-		voting: 'голосование',
-		survey: 'анкетирование',
-	}
 	
 }
 

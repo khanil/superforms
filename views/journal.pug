@@ -3,7 +3,8 @@ include includes/head
 	body
 		header.forms
 			nav.container
-				a(href="/users").pre-active Пользователи
+				- if (isAdmin)
+					a(href="/users").pre-active Пользователи
 				div.triangle.triangle-left
 				a.active Журнал
 				div.triangle.triangle-right

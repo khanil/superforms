@@ -54,7 +54,7 @@ exports.generateUpdateQuery = function(updatedFields, id) {
 
 // create db tables
 exports.create = () => {
-	Promise.all([
+	return Promise.all([
 		createSessionsTable(),
 		createStatusTableAndFill(),
 		createRolesTableAndFill(),
@@ -74,7 +74,9 @@ function createTables() {
 		\
 		CREATE TABLE IF NOT EXISTS users(\
 			id SERIAL PRIMARY KEY,\
-			fullname VARCHAR(255) NOT NULL,\
+			name VARCHAR(255) NOT NULL,\
+			surname VARCHAR(255) NOT NULL,\
+			patronymic VARCHAR(255),\
 			email VARCHAR(255) UNIQUE,\
 			hash VARCHAR(161)\
 		);\

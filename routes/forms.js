@@ -48,7 +48,7 @@ exports.sendInterviewPage = function(req, res, next) {
 exports.save = function(req, res, next) {
 	forms.add(req.user.id, req.body)
 		.then(result => {
-			res.send(forms.getHash(result.id));
+			res.send(forms.encode(result.id));
 		})
 		['catch'](next);
 };
@@ -75,7 +75,6 @@ exports.getAllForUser = function(req, res, next) {
 }
 
 exports.getAllForOrg = function(req, res, next) {
-	console.log(req.user)
 	forms.findAllForOrg(req.user.org_id)
 		.then(foundForms => {
 			if(foundForms) {
@@ -118,7 +117,7 @@ exports.copy = function(req, res, next) {
 	forms.add(req.user.id, newForm)
 		.then(result => {
 			if(result) {
-				res.send( forms.getHash(result.id) );
+				res.send( forms.encode(result.id) );
 			}
 		})
 		['catch'](next);

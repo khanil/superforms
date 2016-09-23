@@ -13,10 +13,9 @@ var app = express();
 var requestLogger = require('./middleware/requestLogger')
 var logger = require('./libs/logger');
 
-
+process.env.NODE_ENV = 'production';
 //create db
 require(__dirname + '/models/db').create();
-
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'pug');

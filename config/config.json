@@ -27,8 +27,8 @@
 			"port": 465,
 			"secure": true,
 			"auth": {
-				"user": "g-f@mosk.spb.ru",
-				"pass": "U3z9O0z4"
+				"user": "",
+				"pass": ""
 			},
 			"tls":{ "rejectUnauthorized": false	}
 	},

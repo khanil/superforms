@@ -1,3 +1,25 @@
+String.prototype.pick = function(min, max) {
+	var n, chars = '';
+	n = (typeof max === 'undefined') ? min : min + Math.round(Math.random() * (max - min + 1));
+	for (var i = 0; i < n; i++) {
+		chars += this.charAt(Math.round(Math.random() * this.length));
+	}
+	return chars;
+};
+String.prototype.shuffle = function() {
+	var array = this.split('');
+	var tmp, current, top = array.length;
+
+	if (top) while (--top) {
+		current = Math.floor(Math.random() * (top + 1));
+		tmp = array[current];
+		array[current] = array[top];
+		array[top] = tmp;
+	}
+	return array.join('');
+};
+
+
 function User() {
 	var config = require('../config');
 	var CryptoJS = require('../libs/cryptoJS')
@@ -10,9 +32,27 @@ function User() {
 		recovery : new Hashids(config.get('hash:user:salt'), config.get('hash:regConfirm:length'))
 	}
 	
-	var self = this;
 	this.table = 'users';
 	this.name = 'user';
+	this.passwordSource = {
+		specials : '!@#$%&*_?',
+		lowercase : 'abcdefghijklmnopqrstuvwxyz',
+		uppercase : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+		numbers : '0123456789',
+	};
+
+	// generate secure password
+	this.genPassword = () => {
+		var source = this.passwordSource;
+		var all = source.specials + source.lowercase + source.uppercase + source.numbers;
+		var newPass = 
+			source.specials.pick(1) + 
+			source.lowercase.pick(1) + 
+			source.uppercase.pick(1) + 
+			source.numbers.pick(1) +
+			all.pick(5, 7);
+		return newPass.shuffle();
+	};
 
 	// find user by id(number) or email(string)
 	this.findOne = unique => db.query(
@@ -32,7 +72,7 @@ function User() {
 
 
 	this.findAll = () => db.query(
-		'SELECT users.id, users.fullname, users.email, roles.name AS role,\
+		'SELECT users.id, concat(users.surname, users.name, users.patronymc) AS fullname, users.email, roles.name AS role,\
 			status.name AS status, logs.changed AS status_changed\
 		FROM user_status_logs AS logs\
 		JOIN users ON users.id = logs.user_id\
@@ -43,16 +83,16 @@ function User() {
 		[], true
 	)
 
-	// SELECT users.*, status.name AS status, status.id AS status_id,
-	// 			logs.changed AS status_changed
-	// 		FROM users, user_status_logs AS logs, status
-	// 		WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs GROUP BY user_id)
-	// 		AND users.id = logs.user_id AND logs.status_id = status.id;
 
-	this.add = user => db.query(
-		'INSERT INTO users(fullname, email, hash) VALUES($1, $2, $3) RETURNING id;', 
-		[user.fullname, user.email, user.salt + '$' + user.password]
-	)
+	this.add = user => {
+		user.password = this.genPassword()
+		var salt = this.genSalt()
+		var hash = CryptoJS.SHA3(user.password, salt)
+		return db.query(
+			'INSERT INTO users(name, surname, patronymic, email, hash) VALUES($1, $2, $3, $4, $5) RETURNING id;', 
+			[user.name, user.surname, user.patronymic, user.email, salt + '$' + hash]
+		)
+	}
 
 	this.addRole = (user_id, role='employee') => db.query(
 		'INSERT INTO user_roles(user_id, role_id)\
