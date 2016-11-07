@@ -46,6 +46,8 @@
 
 	'use strict';
 
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 	var sendRequest = __webpack_require__(1);
 
 	window.ee = new EventEmitter();
@@ -53,20 +55,10 @@
 	var Columns = React.createClass({
 		displayName: 'Columns',
 
-		ruColumns: {
-			index: '№',
-			author: 'Автор',
-			type: 'Назначение',
-			title: 'Название',
-			created: 'Создана',
-			sent: 'Отправлена',
-			expires: 'Истекает',
-			resp_count: 'Ответы'
-		},
-
 		render: function render() {
 			var _this = this;
 
+			console.log(this.props);
 			var columns = this.props.columns;
 			return React.createElement(
 				'tr',
@@ -76,10 +68,12 @@
 						'th',
 						{
 							key: column.name,
-							id: column.name,
-							title: column.sortOrder ? "Отсортировано по " + (column.sortOrder === 'asc' ? 'возрастанию' : 'убыванию') : null },
-						_this.ruColumns[column.name],
-						column.sortOrder ? React.createElement('span', { className: 'pull-right glyphicon glyphicon-menu-' + (column.sortOrder === 'asc' ? 'up' : 'down') }) : null
+							id: column.name },
+						_this.props.rusNames[column.name],
+						column.sortOrder ? React.createElement('span', {
+							className: 'pull-right glyphicon glyphicon-menu-' + (column.sortOrder === 'asc' ? 'up' : 'down'),
+							title: column.sortOrder ? "Отсортировано по " + (column.sortOrder === 'asc' ? 'возрастанию' : 'убыванию') : null
+						}) : null
 					);
 				})
 			);
@@ -100,7 +94,6 @@
 
 		render: function render() {
 			var form = this.props.form;
-			var rus = this.props.rus;
 			return React.createElement(
 				'tr',
 				{ onClick: this.redirect },
@@ -117,7 +110,7 @@
 				React.createElement(
 					'td',
 					null,
-					rus[form.type]
+					this.props.rusNames[form.type]
 				),
 				React.createElement(
 					'td',
@@ -151,47 +144,85 @@
 	var Forms = React.createClass({
 		displayName: 'Forms',
 
-		rus: {
+		rusNames: {
+			// columns
+			index: '№',
+			author: 'Автор',
+			type: 'Назначение',
+			title: 'Название',
+			created: 'Создана',
+			sent: 'Отправлена',
+			expires: 'Истекает',
+			resp_count: 'Ответы',
+			// form types
 			monitoring: 'мониторинг',
 			interview: 'опрос',
 			voting: 'голосование',
 			survey: 'анкетирование'
 		},
 
-		sortNumbers: function sortNumbers(key, order, f1, f2) {
-			return order === 'asc' ? f1[key] - f2[key] : f2[key] - f1[key];
+		compareStrings: function compareStrings() {
+			for (var _len = arguments.length, rest = Array(_len), _key = 0; _key < _len; _key++) {
+				rest[_key] = arguments[_key];
+			}
+
+			var _rest$map = rest.map(function (str) {
+				return str.toLowerCase();
+			});
+
+			var _rest$map2 = _slicedToArray(_rest$map, 2);
+
+			var s1 = _rest$map2[0];
+			var s2 = _rest$map2[1];
+
+			return +(s1 < s2) || +(s1 === s2) - 1;
 		},
 
-		sortRusTypes: function sortRusTypes(key, order, f1, f2) {
-			var type1 = this.rus[f1[key]] || f1[key];
-			var type2 = this.rus[f2[key]] || f2[key];
-			return order === 'asc' ? +(type1 > type2) || +(type1 === type2) - 1 : +(type1 < type2) || +(type1 === type2) - 1;
+		sortFullname: function sortFullname(key, order) {
+			for (var _len2 = arguments.length, rest = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+				rest[_key2 - 2] = arguments[_key2];
+			}
+
+			var _rest$map3 = rest.map(function (user) {
+				return user.surname + ' ' + user.name[0] + '.' + (user.patronymic ? user.patronymic[0] + '.' : '');
+			});
+
+			var _rest$map4 = _slicedToArray(_rest$map3, 2);
+
+			var fname1 = _rest$map4[0];
+			var fname2 = _rest$map4[1];
+
+			var result = this.compareStrings(fname1, fname2);
+			return order === 'asc' ? -result : result;
 		},
 
-		defaultSort: function defaultSort(key, order, f1, f2) {
-			return order === 'asc' ? +(f1[key] > f2[key]) || +(f1[key] === f2[key]) - 1 : +(f1[key] < f2[key]) || +(f1[key] === f2[key]) - 1;
-		},
-
-		getInitialState: function getInitialState() {
-			return {
-				columns: [{ name: 'index', sortOrder: '', sort: this.sortNumbers }, { name: 'author', sortOrder: '', sort: this.defaultSort }, { name: 'type', sortOrder: '', sort: this.sortRusTypes }, { name: 'title', sortOrder: '', sort: this.defaultSort }, { name: 'created', sortOrder: '', sort: this.sortNumbers }, { name: 'sent', sortOrder: '', sort: this.sortNumbers }, { name: 'expires', sortOrder: '', sort: this.sortNumbers }, { name: 'resp_count', sortOrder: '', sort: this.sortNumbers }],
-				forms: []
-			};
-		},
-
-		componentDidMount: function componentDidMount() {
+		sortRusStrings: function sortRusStrings(key, order) {
 			var _this2 = this;
 
-			sendRequest('GET', '/api/journal').then(function (response) {
-				_this2.setState({
-					forms: JSON.parse(response, function (key, value) {
-						if (key === 'created' || key === 'sent' || key === 'expires') return value ? new Date(value) : null;
-						return value;
-					})
-				});
-			}).catch(function (err) {
-				console.log('xhr err:', err);
+			for (var _len3 = arguments.length, rest = Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
+				rest[_key3 - 2] = arguments[_key3];
+			}
+
+			var _rest$map5 = rest.map(function (user) {
+				return _this2.rusNames[user[key]] || user[key];
 			});
+
+			var _rest$map6 = _slicedToArray(_rest$map5, 2);
+
+			var rus1 = _rest$map6[0];
+			var rus2 = _rest$map6[1];
+
+			var result = this.compareStrings(rus1, rus2);
+			return order === 'asc' ? -result : result;
+		},
+
+		sortStrings: function sortStrings(key, order, obj1, obj2) {
+			var result = this.compareStrings(obj1[key], obj2[key]);
+			return order === 'asc' ? -result : result;
+		},
+
+		sortNumbers: function sortNumbers(key, order, f1, f2) {
+			return order === 'asc' ? f1[key] - f2[key] : f2[key] - f1[key];
 		},
 
 		sort: function sort(event) {
@@ -211,8 +242,30 @@
 			});
 		},
 
-		showList: function showList(forms) {
+		getInitialState: function getInitialState() {
+			return {
+				columns: [{ name: 'index', sortOrder: '', sort: this.sortNumbers }, { name: 'author', sortOrder: '', sort: this.sortStrings }, { name: 'type', sortOrder: '', sort: this.sortRusStrings }, { name: 'title', sortOrder: '', sort: this.sortStrings }, { name: 'created', sortOrder: '', sort: this.sortNumbers }, { name: 'sent', sortOrder: '', sort: this.sortNumbers }, { name: 'expires', sortOrder: '', sort: this.sortNumbers }, { name: 'resp_count', sortOrder: '', sort: this.sortNumbers }],
+				forms: []
+			};
+		},
+
+		componentDidMount: function componentDidMount() {
 			var _this3 = this;
+
+			sendRequest('GET', '/api/journal').then(function (response) {
+				_this3.setState({
+					forms: JSON.parse(response, function (key, value) {
+						if (key === 'created' || key === 'sent' || key === 'expires') return value ? new Date(value) : null;
+						return value;
+					})
+				});
+			}).catch(function (err) {
+				console.log('xhr err:', err);
+			});
+		},
+
+		showList: function showList(forms) {
+			var _this4 = this;
 
 			return React.createElement(
 				'table',
@@ -220,13 +273,13 @@
 				React.createElement(
 					'thead',
 					{ onClick: this.sort },
-					React.createElement(Columns, { columns: this.state.columns })
+					React.createElement(Columns, { columns: this.state.columns, rusNames: this.rusNames })
 				),
 				React.createElement(
 					'tbody',
 					null,
 					forms.map(function (form, i) {
-						return React.createElement(Form, { key: form.id, form: form, rus: _this3.rus });
+						return React.createElement(Form, { key: form.id, form: form, rusNames: _this4.rusNames });
 					})
 				)
 			);
@@ -240,7 +293,7 @@
 				forms.length ? this.showList(forms) : React.createElement(
 					'p',
 					null,
-					'Форм не найдено.'
+					'\u0424\u043E\u0440\u043C \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u043E.'
 				)
 			);
 		}

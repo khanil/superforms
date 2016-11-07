@@ -10,7 +10,7 @@ body {
 input,
 select,
 button.btn-default {
-  background-color: inherit !important;
+  background-color: #fefefe !important;
 }
 
 button[disabled],
@@ -384,6 +384,8 @@ table .form-group {
 }
 
 
+
+/* headers */
 header { 
   height: 40px;
 }
@@ -403,6 +405,7 @@ header.users {
   border-color: #46b8da;
 }
 
+#root .nav-pills .active a,
 header.forms {
   background-color: #6391b9;
   border-color: #4377a4;
@@ -442,11 +445,9 @@ header nav.container > a.active {
   background-color: #fefefe;
   color: #555;
   z-index: 2 !important;
-  /*border-radius: 10px;*/
 }
 
 header nav.container > a.post-active {
-  /*padding-left: 42px;*/
   margin-left: -12px;
 }
 
@@ -508,11 +509,6 @@ div.container.message {
   text-align: center;
 }
 
-
-.create-form {
-  /*height: 0;*/
-}
-
 .create-form > a {
   position: relative;
   top: 15px;
@@ -527,88 +523,127 @@ div.container.message {
   line-height: 16px;
 }
 
-
-/* The switch - the box around the slider */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-  vertical-align: middle;
-  margin-left: 7px;
+@media (min-width: 1400px) {
+  .wide {
+    width: 1400px;
+  }
 }
 
-/* Hide default HTML checkbox */
-.switch input {display:none;}
-
-/* The slider */
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
+@media (max-width: 1400px) {
+  .wide {
+    width: 90%;
+  }
 }
 
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
+.narrow {
+  width: 744px;
 }
 
-input:checked + .slider {
-  background-color: #337ab7;
+/* loading animation */ 
+.glyphicon-refresh-animate {
+    -moz-animation: spin .7s infinite linear;
+    -webkit-animation: webkit-spin .7s infinite linear;
 }
 
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
+@-webkit-keyframes webkit-spin {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
 }
 
-input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
 }
 
-/* Rounded sliders */
-.slider.round {
-  border-radius: 34px;
-}
 
-.slider.round:before {
-  border-radius: 50%;
-}
-
-.table-forms-list tr {
-  cursor: pointer;
+/*Super - Table*/
+.super-table__row_empty {
+  text-align: center;
 }
  
-.table-forms-list td {
+.super-table__header .fa-sort-asc {
+  padding-top: 5px;
+}
+ 
+.super-table__cell {
   vertical-align: middle !important;
-  /*padding-top: 4px !important;*/
-  /*padding-bottom: 4px !important;*/
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
 }
  
-.th-table-forms-list_form-index {
-  width: 45px;
+.super-table__column_clickable {
+  cursor: pointer;
 }
  
-.th-table-forms-list_form-control {
+.super-table__row_clickable {
+  cursor: pointer;
+}
+ 
+.super-table .dropdown {
+  display: inline-block;
+}
+ 
+.super-table .dropdown .dropdown-toggle button {
+  padding: 4px 6px 2px 6px;
+  margin-left: 4px;
+}
+ 
+.super-table .dropdown .dropdown-toggle button:focus {
+  outline: none;
+}
+ 
+.super-table .dropdown .dropdown-toggle i {
+  display: block;
+  
+}
+ 
+.super-table .dropdown .dropdown-toggle .fa-sort-asc {
+  margin-bottom: -6px;
+  margin-top: -8px;
+}
+ 
+.super-table .dropdown .dropdown-toggle .fa-sort-desc {
+  margin-top: -8px;
+}
+ 
+/*FormsList Page*/
+.nav-pretable {
+  margin: auto;
+  margin-bottom: 10px;
+  width: 242px;
+}
+ 
+/*Forms List Table Styles*/
+.super-table_name_form-list table {
+  margin-bottom: 65px;
+}
+ 
+.super-table_name_form-list .super-table__column_id_control {
   width: 175px;
-  min-width: 175px;
-  max-width: 175px;
 }
-
-.table-forms-list td:last-of-type button {
-  border: none;
+ 
+.super-table_name_journal .super-table__cell_id_title,
+.super-table_name_form-list .super-table__cell_id_title {
+  max-width: 500px;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+}
+ 
+/** Journal Table Styles*/
+.super-table_name_journal table {
+  margin-bottom: 65px;
+}
+ 
+.super-table_name_journal .super-table__column_id_control {
+  width: 1px;
+}
+ 
+.loading-spinner span,
+.loading-spinner .fa {
+  display: inline-block;
+  vertical-align: middle;
+}
+ 
+.loading-spinner span {
+  margin-left: 5px;
 }

@@ -1,8 +1,8 @@
 {
 	"port" : 3000,
-	"domain" : "http://localhost:3000/",
+	"domain" : "http://5.17.125.174:40080/",
 	"pg" : {
-		"url" : "postgres://user:password@localhost:5432/sf",
+		"url" : "postgres://user:password@localhost:5432/db_name",
 		"poolIdleTimeout" : 30000
 	},
 	"session" : {
@@ -23,12 +23,12 @@
 		"report" : { "salt" : "shuffled based on salt.", "length" : 11 }
 	},
 	"nodemailer" : {
-			"host": "",
+			"host": "smtp.mosk.spb.ru",
 			"port": 465,
 			"secure": true,
 			"auth": {
-				"user": "",
-				"pass": ""
+                "user": "mail_login",
+				"pass": "mail_password"
 			},
 			"tls":{ "rejectUnauthorized": false	}
 	},

@@ -4,29 +4,21 @@ window.ee = new EventEmitter();
 
 
 var Columns = React.createClass({
-	ruColumns: {
-		index: '№',
-		author: 'Автор',
-		type: 'Назначение',
-		title: 'Название',
-		created: 'Создана',
-		sent: 'Отправлена',
-		expires: 'Истекает',
-		resp_count: 'Ответы'
-	},
-
 	render: function() {
+		console.log(this.props)
 		var columns = this.props.columns;
 		return (
 			<tr>
 				{columns.map(column => 
 					(<th 
 						key={column.name} 
-						id={column.name} 
-						title={column.sortOrder? ("Отсортировано по " + (column.sortOrder === 'asc' ? 'возрастанию' : 'убыванию')) : null}>
-						{this.ruColumns[column.name]}
+						id={column.name}> 
+						{this.props.rusNames[column.name]}
 						{column.sortOrder ? 
-							(<span className={'pull-right glyphicon glyphicon-menu-' + (column.sortOrder === 'asc' ? 'up' : 'down')}></span>) :
+							(<span 
+								className={'pull-right glyphicon glyphicon-menu-' + (column.sortOrder === 'asc' ? 'up' : 'down')}
+								title={column.sortOrder? ("Отсортировано по " + (column.sortOrder === 'asc' ? 'возрастанию' : 'убыванию')) : null}
+							></span>) :
 							null
 						}
 					</th>))}
@@ -49,12 +41,11 @@ var Form = React.createClass({
 
 	render: function() {
 		var form = this.props.form
-		var rus = this.props.rus
 		return (
 			<tr onClick={this.redirect}>
 				<td>{ form.index }</td>
 				<td>{ form.author }</td>
-				<td>{ rus[form.type] }</td>
+				<td>{ this.props.rusNames[form.type] }</td>
 				<td>{ form.title }</td>
 				<td>{ form.created.toLocaleString("ru") }</td>
 				<td>{ form.sent? form.sent.toLocaleString("ru") : 'не отправлена' }</td>
@@ -68,29 +59,70 @@ var Form = React.createClass({
 
 
 var Forms = React.createClass({
-	rus: {
+	rusNames: {
+		// columns
+		index: '№',
+		author: 'Автор',
+		type: 'Назначение',
+		title: 'Название',
+		created: 'Создана',
+		sent: 'Отправлена',
+		expires: 'Истекает',
+		resp_count: 'Ответы',
+		// form types
 		monitoring: 'мониторинг',
 		interview: 'опрос',
 		voting: 'голосование',
-		survey: 'анкетирование',
+		survey: 'анкетирование'
+	},
+
+	compareStrings: function(...rest) {
+		let [s1, s2] = rest.map(str => str.toLowerCase())
+		return +(s1 < s2) || +(s1 === s2) - 1
+	},
+
+	sortFullname: function(key, order, ...rest) {
+		let [fname1, fname2] = rest.map(user => {
+			return `${user.surname} ${user.name[0]}.${user.patronymic? user.patronymic[0] + '.' : ''}`
+		})
+		var result = this.compareStrings(fname1, fname2)
+		return order === 'asc'? -result : result
+	},
+
+	sortRusStrings: function(key, order, ...rest) { 
+		let [rus1, rus2] = rest.map(user => this.rusNames[user[key]] || user[key])
+		var result = this.compareStrings(rus1, rus2)
+		return order === 'asc'? -result : result
+	},
+
+	sortStrings: function(key, order, obj1, obj2) { 
+		var result = this.compareStrings(obj1[key], obj2[key])
+		return order === 'asc'? -result : result
 	},
 
 	sortNumbers: function(key, order, f1, f2) { 
 		return order === 'asc'? f1[key] - f2[key] : f2[key] - f1[key] 
 	},
 
-	sortRusTypes: function(key, order, f1, f2) { 
-		var type1 = this.rus[f1[key]] || f1[key]
-		var type2 = this.rus[f2[key]] || f2[key]
-		return order === 'asc'? 
-			+(type1 > type2) || +(type1 === type2) - 1 : 
-			+(type1 < type2) || +(type1 === type2) - 1
-	},
+	sort: function(event) {
+		var target = event.target.tagName === 'SPAN'? 
+			event.target.parentElement :
+			event.target;
 
-	defaultSort: function(key, order, f1, f2) { 
-		return order === 'asc'? 
-			+(f1[key] > f2[key]) || +(f1[key] === f2[key]) - 1: 
-			+(f1[key] < f2[key]) || +(f1[key] === f2[key]) - 1 
+		if(target.tagName !== 'TH')
+			return;
+
+		var columns = this.state.columns;
+		var key = target.id;
+		var clicked = target.cellIndex;
+		var newOrder = columns[clicked].sortOrder === 'asc' ? 'desc' : 'asc';
+		columns[clicked] = Object.assign(columns[clicked], { sortOrder: newOrder });
+		
+		this.setState({ 
+			forms: this.state.forms.sort(columns[clicked].sort.bind(this, key, newOrder)),
+			columns: columns 
+		})
+		
 	},
 	
 
@@ -98,9 +130,9 @@ var Forms = React.createClass({
 		return ({
 			columns: [
 				{ name: 'index', sortOrder: '', sort: this.sortNumbers },
-				{ name: 'author', sortOrder: '', sort: this.defaultSort },
-				{ name: 'type', sortOrder: '', sort: this.sortRusTypes },
-				{ name: 'title', sortOrder: '', sort: this.defaultSort},
+				{ name: 'author', sortOrder: '', sort: this.sortStrings },
+				{ name: 'type', sortOrder: '', sort: this.sortRusStrings },
+				{ name: 'title', sortOrder: '', sort: this.sortStrings },
 				{ name: 'created', sortOrder: '', sort: this.sortNumbers },
 				{ name: 'sent', sortOrder: '', sort: this.sortNumbers },
 				{ name: 'expires', sortOrder: '', sort: this.sortNumbers },
@@ -124,37 +156,16 @@ var Forms = React.createClass({
 			.catch(err => { console.log('xhr err:', err) })
 	},
 
-	sort: function(event) {
-		var target = event.target.tagName === 'SPAN'? 
-			event.target.parentElement :
-			event.target;
-
-		if(target.tagName !== 'TH')
-			return;
-
-		var columns = this.state.columns;
-		var key = target.id;
-		var clicked = target.cellIndex;
-		var newOrder = columns[clicked].sortOrder === 'asc' ? 'desc' : 'asc';
-		columns[clicked] = Object.assign(columns[clicked], { sortOrder: newOrder });
-		
-		this.setState({ 
-			forms: this.state.forms.sort(columns[clicked].sort.bind(this, key, newOrder)),
-			columns: columns 
-		})
-		
-	},
-
 	showList: function(forms) {
 		return (
 			<table className="table table-bordered table-hover">
 				<thead onClick={this.sort}>
-					<Columns columns={this.state.columns}/>
+					<Columns columns={this.state.columns} rusNames={this.rusNames}/>
 				</thead>
 				<tbody>
 					{forms.map(
 						(form, i) => {
-							return <Form key={form.id} form={form} rus={this.rus}/>
+							return <Form key={form.id} form={form} rusNames={this.rusNames}/>
 						}
 					)}
 				</tbody>

@@ -1,5 +1,3 @@
-var fs = require('fs');
-var path = require('path');
 // var multer = require('multer');
 var config = require('../config');
 // middlewares
@@ -11,7 +9,6 @@ var checkFormByOrg = require('../middleware/checkFormByOrg')
 var checkFormByAuthor = require('../middleware/checkFormByAuthor');// find the form and compare user id with user id from session
 var checkResponseByForm = require('../middleware/checkResponseByForm');
 // models
-require('../models/db.js');
 var users = require('./users.js');
 var forms = require('./forms.js');
 var responses = require('./responses.js');
@@ -19,31 +16,8 @@ var loadData = require('../middleware/loadData');
 // logger
 var logger = require('../libs/logger');
 
-// var upload = multer({ 
-// 	storage: multer.diskStorage({
-// 		destination: config.get('multer:destination'),
-// 		filename: function (req, file, cb) {
-// 			console.log(file)
-// 			cb(null, file.fieldname + '-' + Date.now())
-// 		}
-// 	})//,
-// 	//limits: config.get('multer:limits')
-// })
 
-
-module.exports = function (app) {	
-	// app.get('/test', (req, res, next) => { res.render('test') } )
-	// app.get('/post', (req, res, next) => {
-	// 	var string = req.body
-	// 	var regex = /^data:.+\/(.+);base64,(.*)$/;
-
-	// 	var matches = string.match(regex);
-	// 	var ext = matches[1];
-	// 	var data = matches[2];
-	// 	var buffer = new Buffer(data, 'base64');
-	// 	fs.writeFileSync('data.' + ext, buffer);
-	// 	res.sendStatus(200) 
-	// } )
+module.exports = function (app) {
 
 	app.get('/confirm_registration/:token', checkNotAuth, users.confirmRegistration);
 	app.get('/signout', users.signOut);
@@ -51,8 +25,7 @@ module.exports = function (app) {
 
 	app.get('/', loadData, require('./main.js').get);
 	
-	// app.post('/forms/uploadfiles', loadData, checkAuth, 
-	// 	upload.array('files', config.get('multer:maxCount')), forms.uploadFiles);
+	app.get('/forms-new', loadData, checkAuth, forms.sendFormsPage)
 	app.get('/forms', loadData, checkAuth, forms.sendFormsPage)
 	app.get('/journal', loadData, checkAuth, forms.sendJournalPage);
 	app.get('/forms/new', loadData, checkAuth, forms.sendGeneratorPage);// get form's generator page
@@ -72,8 +45,8 @@ module.exports = function (app) {
 		checkFormByOrg, checkResponseByForm, responses.sendResponsePage);//get one response by id 
 
 
-
 	// For XMLHttpRequest
+
 	app.put('/api/signin', checkNotAuth, users.sendSignInSalt)
 	app.post('/api/signin', checkNotAuth, users.signIn);
 
@@ -81,6 +54,8 @@ module.exports = function (app) {
 	app.get('/api/users/signup', loadData, checkAuth, isAdmin, users.sendSignUpSalt)
 	app.post('/api/users/signup', loadData, checkAuth, isAdmin, users.signUp)
 
+
+	app.post('/api/setdefaulttab', loadData, checkAuth, forms.setDefaultTab)
 	app.get('/api/forms', loadData, checkAuth, forms.getAllForUser);//get all forms
 	app.get('/api/journal', loadData, checkAuth, forms.getAllForOrg);//get all forms  
 	app.post('/api/forms', loadData, checkAuth, forms.save);//save form's template
@@ -93,9 +68,9 @@ module.exports = function (app) {
 
 
 	app.get('/api/forms/:id/responses', loadData,  checkAuth, checkFormByOrg, responses.getAll);//get all responses
-	app.get('/api/forms/:id/responses/xlsx', loadData, checkAuth, checkFormByAuthor, responses.getXlsx);//get all responses
+	app.get('/api/forms/:id/responses/xlsx', loadData, checkAuth, checkFormByOrg, responses.getXlsx);//get all responses
 	app.get('/api/forms/:id/responses/:response_id', loadData, checkAuth, 
-		checkFormByAuthor, checkResponseByForm, responses.getOne);//get one response by id 
+		checkFormByOrg, checkResponseByForm, responses.getOne);//get one response by id 
 	app.post('/api/forms/:id/responses', loadData, permissionToFill, responses.save);//save interview (filled form) 
 
 }

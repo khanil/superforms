@@ -1,11 +1,14 @@
 String.prototype.pick = function(min, max) {
 	var n, chars = '';
-	n = (typeof max === 'undefined') ? min : min + Math.round(Math.random() * (max - min + 1));
+	n = (typeof max === 'undefined') ? 
+		min : min + Math.round(Math.random() * (max - min + 1));
+
 	for (var i = 0; i < n; i++) {
 		chars += this.charAt(Math.round(Math.random() * this.length));
 	}
 	return chars;
 };
+
 String.prototype.shuffle = function() {
 	var array = this.split('');
 	var tmp, current, top = array.length;
@@ -32,6 +35,7 @@ function User() {
 		recovery : new Hashids(config.get('hash:user:salt'), config.get('hash:regConfirm:length'))
 	}
 	
+	this.naming = this.constructor.name;
 	this.table = 'users';
 	this.name = 'user';
 	this.passwordSource = {
@@ -71,7 +75,7 @@ function User() {
 
 
 	this.findAll = () => db.query(
-		`SELECT users.id, concat(users.surname, ' ', users.name, ' ', users.patronymic) AS fullname, users.email, roles.name AS role,
+		`SELECT users.id, users.surname, users.name, users.patronymic, users.email, roles.name AS role,
 			status.name AS status, logs.changed AS status_changed
 		FROM user_status_logs AS logs
 		JOIN users ON users.id = logs.user_id
@@ -99,6 +103,15 @@ function User() {
 		RETURNING user_id AS id;', [user_id, role]
 	)
 
+	this.changePassword = user => {
+		user.password = user.password || this.genPassword()
+		var salt = this.genSalt()
+		var hash = CryptoJS.SHA3(user.password, salt)
+		return db.query(
+			'UPDATE users SET hash=$2 WHERE id=$1;', 
+			[user.id, salt + '$' + hash]
+		)
+	}
 
 	this.changeStatus = (user_id, status='waiting') => db.query(
 		'INSERT INTO user_status_logs(user_id, status_id)\
@@ -114,7 +127,7 @@ function User() {
 		var regToken = this.genSalt(64)
 		return db.query(
 			'INSERT INTO registration_tokens(user_id, token)\
-			VALUES($1, $2) RETURNING token;', [user_id, regToken]
+			VALUES($1, $2) RETURNING *;', [user_id, regToken]
 		)
 	}
 
@@ -147,6 +160,10 @@ function User() {
 				null)
 	}
 
+	this.encrypt = (data, salt) => {
+		return CryptoJS.AES.encrypt(data, salt).toString()
+	}
+
 	this.decrypt = (hash, salt) => {
 		var user = CryptoJS.AES.decrypt(hash, salt).toString(CryptoJS.enc.Utf8);
 		if(user) {
@@ -155,7 +172,7 @@ function User() {
 		throw new Error('incorrect user\'s hash')
 	}
 
-	this.genSalt = (length=16) => {
+	this.genSalt = (length=32) => {
 		return CryptoJS.lib.WordArray.random(length).toString()
 	}
 

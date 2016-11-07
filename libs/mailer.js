@@ -6,25 +6,56 @@ var transporter = nodemailer.createTransport(smtpTransport(config.get('nodemaile
 var SmtpError = require('../error').SmtpError;
 
 
-exports.sendRegConfirm = (admin, user, regToken) => {
+exports.sendRegConfirm = (user, regToken) => {
 	// localhost:3000/user/confirm_registration/:confirm_id
 	var link = config.get('domain') + 'confirm_registration/' + regToken;
-
+	var hours = (new Date()).getHours()
+console.log()
 	var mailOptions = {
 		from: "Form Generator <g-f@mosk.spb.ru>", // sender address
 		to: user.email, // list of receivers 
 		subject: 'Подтверждение регистрации', // Subject line 
 		html: 
-			`<h3>Добрый день, ${user.name} ${user.patronymic}!<h3> 
-			<p>${admin.surname} ${admin.name[0]}.${admin.patronymic[0] + '.' || ''} зарегистрировал Вас в сервисе Form Generator.</p>
+			`<h3>${hours < 6? 
+				'Здравствуйте' : hours < 10? 
+					'Доброе утро' : hours < 18? 
+						'Добрый день' : 'Добрый вечер'}, ${user.name} ${user.patronymic || ''}!<h3> 
+			<p>Вы были зарегистрированы в системе <a href=${config.get('domain')}>Form Generator</a>, 
+				предназначенной для генерации форм онлайн-опросов и мониторингов, 
+				а также для сбора и анализа всех получаемых ответов.</p>
 			<p>Логин: ${user.email}</p>
 			<p>Пароль: ${user.password}</p>
-			<p>Чтобы завершить регистрацию, пожалуйста, перейдите по следующей ссылке:</p>
+			<p>Чтобы активировать Ваш аккаунт, пожалуйста, перейдите по следующей ссылке:</p>
 			<a href=${link}>${link}</a>`
 	}
 	console.log('mail options:\n', mailOptions);
 	return sendMail(mailOptions);
 }
+
+
+exports.sendNewPassword = user => {
+	// localhost:3000/user/confirm_registration/:confirm_id
+	var link = config.get('domain') + 'confirm_registration/' + regToken;
+	var hours = (new Date()).getHours()
+console.log()
+	var mailOptions = {
+		from: "Form Generator <g-f@mosk.spb.ru>", // sender address
+		to: user.email, // list of receivers 
+		subject: 'Смена пароля', // Subject line 
+		html: 
+			`<h3>${hours < 6? 
+				'Здравствуйте' : hours < 10? 
+					'Доброе утро' : hours < 18? 
+						'Добрый день' : 'Добрый вечер'}, ${user.name} ${user.patronymic || ''}!<h3> 
+			<p>Ваш пароль в системе <a href=${config.get('domain')}>Form Generator</a> был измненен.</p>
+			<p>Логин: ${user.email}</p>
+			<p>Пароль: ${user.password}</p>`
+	}
+	console.log('mail options:\n', mailOptions);
+	return sendMail(mailOptions);
+}
+
+
 
 function sendMail(mailOptions) {
 	return new Promise((resolve, reject) => {

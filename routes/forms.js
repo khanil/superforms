@@ -4,13 +4,23 @@ var HttpError = require('../error').HttpError;
 var mailer = require('../libs/mailer')
 var users = require('../models/user');
 
+/*
+Sending of HTML pages
+*/
+
 exports.sendFormsPage = (req, res) => {
-	res.render('forms', { isAdmin: users.isAdmin(req.user) }) 
+	res.render('forms', { 
+		isAdmin: users.isAdmin(req.user), 
+		unstable: ~req.url.indexOf('forms-new'),
+		defaultTab: req.session.defaultTab 
+	})
 }
+
 
 exports.sendJournalPage = (req, res) => {
 	res.render('journal', { isAdmin: users.isAdmin(req.user) });
 }
+
 
 exports.sendGeneratorPage = function (req, res) {
 	res.render('generation&edit', { 
@@ -22,6 +32,7 @@ exports.sendGeneratorPage = function (req, res) {
 	});
 };
 
+
 exports.sendEditPage = function(req, res, next) {
 	res.render('generation&edit', { 
 		title: 'Редактирование формы',
@@ -31,6 +42,7 @@ exports.sendEditPage = function(req, res, next) {
 		isAdmin: users.isAdmin(req.user)
 	});
 }
+
 
 exports.sendPreviewPage = function(req, res, next) {
 	res.render('preview', { id: req.params.id, isAdmin: users.isAdmin(req.user) });
@@ -45,6 +57,10 @@ exports.sendInterviewPage = function(req, res, next) {
 }
 
 
+/*
+API
+*/
+
 exports.save = function(req, res, next) {
 	forms.add(req.user.id, req.body)
 		.then(result => {
@@ -53,12 +69,18 @@ exports.save = function(req, res, next) {
 		['catch'](next);
 };
 
+exports.setDefaultTab = (req, res, next) => {
+	req.session.defaultTab = req.body;
+	res.sendStatus(200);
+}
 
+// get the one form template
 exports.getOne = function(req, res, next) {
 	res.json( forms.modifyForClient(req.form) );
 }
 
 
+// get an array of all forms for a specific user
 exports.getAllForUser = function(req, res, next) {
 	forms.findAllForUser(req.user.id)
 		.then(foundForms => {
@@ -74,6 +96,8 @@ exports.getAllForUser = function(req, res, next) {
 		['catch'](next);
 }
 
+
+// get an array of all forms for a specific organization
 exports.getAllForOrg = function(req, res, next) {
 	forms.findAllForOrg(req.user.org_id)
 		.then(foundForms => {
@@ -90,16 +114,17 @@ exports.getAllForOrg = function(req, res, next) {
 }
 
 
+// update the form template
 exports.update = function(req, res, next) {
 	var id = req.form.id;
 	var updatedFields = {
 		template : req.body
 	}
-	// Если форма сохраняется в процессе создания, то дата изменения не записывается в базу
-	// Используется для возможности сортировки по созданным / отредактированным / отправленным формам
+
 	if ( req.headers.referer !== config.get('domain') + 'forms/new' ) {
 		updatedFields.edited = new Date();
 	}
+
 	forms.update(id, updatedFields)
 		.then(result => {
 			res.sendStatus(200);
@@ -108,6 +133,7 @@ exports.update = function(req, res, next) {
 }
 
 
+// copy the form template
 exports.copy = function(req, res, next) {
 	var id = req.form.id;
 	var newName = req.body;
@@ -117,37 +143,27 @@ exports.copy = function(req, res, next) {
 	forms.add(req.user.id, newForm)
 		.then(result => {
 			if(result) {
-				res.send( forms.encode(result.id) );
+				res.json({
+					index: result.id, 
+					id: forms.encode(result.id) 
+				});
 			}
 		})
 		['catch'](next);
 }
 
 
-exports.uploadFiles = (req, res, next) => {
-	console.log(req.body)
-	res.json(req.files);
-}
-
-
+// delete the form with all responses
 exports.delete = function(req, res, next) {
 	var id = req.form.id;
 
 	forms.delete(id)
-		.then(result => {
-			var referer = req.headers.referer;
-			if(referer) {
-				if(!!~referer.indexOf('/forms/')) {
-					res.redirect('/');
-					return;
-				}
-			}
-			res.sendStatus(200);
-		})
-		['catch'](next);
+		.then(result => { res.sendStatus(200); })
+		.catch(next);
 }
 
 
+// send the form (make it available for filling)
 exports.send = function(req, res, next) {
 	var body = JSON.parse(req.body);
 	// determine fields that should be updated
@@ -159,5 +175,3 @@ exports.send = function(req, res, next) {
 		.then(result => res.sendStatus(200))
 		.catch(next);
 }
-
-

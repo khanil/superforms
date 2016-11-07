@@ -3,17 +3,16 @@ include includes/head
 	link(rel="stylesheet", href="/styles/react-widgets.css")
 body
 	header.forms
-		nav.container
+		nav.narrow.container
 			- if (isAdmin)
 				a(href='/users') Пользователи
-			a(href='/journal') Журнал
 			a.pre-active(href='/forms') Формы
 			div.triangle.triangle-left
 			a.active Просмотр формы
 			div.triangle.triangle-right
 			include includes/signout
 	//- div.col-md-4
-	div#root.container
+	div#root.narrow.container
 	//- div.col-md-4
 	script#info(type="application/json").
 		{

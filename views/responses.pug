@@ -2,17 +2,16 @@ include includes/head
 	title Сводка ответов | SuperForms
 body
 	header.responses
-		nav.container
+		nav.wide.container
 			- if (isAdmin)
 				a(href='/users') Пользователи
-			a(href='/journal') Журнал
 			a.pre-active(href='/forms') Формы
 			div.triangle.triangle-left
 			a.active Ответы
 			div.triangle.triangle-right
 			include includes/signout
 					
-	div#root.container
+	div#root.wide.container
 	script#info(type="application/json").
 		{
 			"getUrl": "/api/forms/#{id}/responses",

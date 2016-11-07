@@ -57,9 +57,12 @@ exports.errorHandler = function (err, req, res, send) {
 			break;
 		// SMTP protocol error (email sending failed)
 		case SmtpError:
-			if(err.code === 'EENVELOPE' || err.code === 'ENOTFOUND' || err.code === 'EMESSAGE') {
-				level = 'WARN'
-				err.httpResponse = new HttpError(422, 'Некорректный адрес электронной почты.')
+			if(err.code === 'ECONNECTION') {
+				level = 'ERROR'
+				err.httpResponse = new HttpError(500, 'Почтовая рассылка недоступна в данный момент.')
+			} else if(err.code === 'EENVELOPE' || err.code === 'ENOTFOUND' || err.code === 'EMESSAGE') {
+					level = 'WARN'
+					err.httpResponse = new HttpError(422, 'Некорректный адрес электронной почты.')
 			}
 			break;
 	}

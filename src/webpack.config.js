@@ -6,12 +6,13 @@ path = require('path');
 webpackConfig = {
 	context: __dirname,
 	entry: {
-		users: './sources/users.js',
-		journal: './sources/journal.js'
+		signin: './components/signin.js',
+		users: './components/users.js',
+		journal: './components/journal.js'
 	},
 	output: {
 		filename: '[name].js',
-		path: './scripts/'
+		path: '../public/scripts/'
 	},
 	resolve: {
 		extensions: ['', '.js', '.jsx']

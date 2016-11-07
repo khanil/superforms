@@ -11,28 +11,44 @@ function Form() {
 	 	return db.query('SELECT * FROM forms WHERE id = $1;', [id]);
 	}
 
-	this.findAllForUser = function (user_id) {
-		return db.query('SELECT * FROM forms WHERE user_id = $1 ORDER BY id DESC;', [user_id], true);
-	}
+	this.findAllForUser = user_id => db.query(
+			`SELECT forms.*, responses.resp_count
+			FROM (
+				SELECT forms.id,
+					forms.template::json->>'title' AS title,
+					forms.template::json->>'type' AS type,
+					forms.template::json->>'description' AS description,
+					forms.created, forms.edited, forms.sent, forms.expires, forms.allowrefill
+				FROM forms
+				WHERE forms.user_id = $1
+			) AS forms
+			LEFT JOIN (
+				SELECT COUNT(*) AS resp_count, form_id FROM responses 
+				GROUP BY form_id
+			) AS responses ON responses.form_id = forms.id
+			ORDER BY forms.id DESC;`, [user_id], true);
 
-	this.findAllForOrg = function (org_id) {
-		return db.query(
-			'SELECT users.name, users.surname, users.patronymic, forms.*, responses.resp_count\
-			FROM (\
-				SELECT forms.id, forms.user_id,\
-					forms.template::json->>\'title\' AS title,\
-					forms.template::json->>\'type\' AS type,\
-					forms.template::json->>\'description\' AS description,\
-					forms.created, forms.edited, forms.sent, forms.expires, forms.allowrefill\
-				FROM forms\
-				WHERE forms.user_id IN (\
-					SELECT user_id FROM user_roles WHERE organization_id = $1\
-				)\
-			) AS forms\
-			JOIN users ON users.id = forms.user_id\
-			LEFT JOIN (SELECT COUNT(*) AS resp_count, form_id FROM responses GROUP BY form_id) AS responses ON responses.form_id = forms.id\
-			ORDER BY forms.id DESC;', [org_id], true);
-	}
+
+	this.findAllForOrg = org_id => db.query(
+			`SELECT users.name, users.surname, users.patronymic, forms.*, responses.resp_count
+			FROM (
+				SELECT forms.id, forms.user_id,
+					forms.template::json->>'title' AS title,
+					forms.template::json->>'type' AS type,
+					forms.template::json->>'description' AS description,
+					forms.created, forms.edited, forms.sent, forms.expires, forms.allowrefill
+				FROM forms
+				WHERE forms.user_id IN (
+					SELECT user_id FROM user_roles WHERE organization_id = $1
+				)
+			) AS forms
+			JOIN users ON users.id = forms.user_id
+			LEFT JOIN (
+				SELECT COUNT(*) AS resp_count, form_id FROM responses 
+				GROUP BY form_id
+			) AS responses ON responses.form_id = forms.id
+			ORDER BY forms.id DESC;`, [org_id], true);
+
 
 	this.add = function (user, form) {
 		return db.query("INSERT INTO forms(user_id, template) values($1, $2) RETURNING id;", [user, form]);
@@ -59,20 +75,14 @@ function Form() {
 
 	this.modifyForJournal = form => {
 		form.author = `${form.surname} ${form.name[0]}.${form.patronymic? form.patronymic[0] + '.' : ''}`
-		// form.author = form.surname + ' ' + form.name[0]  + '.' + form.patronymic? form.patronymic[0] + '.' : ''
 		form.index = form.id;
 		form.id = hashids.encode(form.id);
 		form.user_id = user.encode(form.user_id);
 	}
 
 	this.modifyForClientWithoutItems = form => {
-		delete(form.template.items)
-		// copy form template to the object first level
-		Object.assign(form, form.template)
-		delete(form.template)
-		form.index = form.id
-		form.id = hashids.encode(form.id)
-		form.user_id = user.encode(form.user_id)
+		form.index = form.id;
+		form.id = hashids.encode(form.id);
 	}
 
 	this.modifyForClient = function (form) {

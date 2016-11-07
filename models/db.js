@@ -78,7 +78,7 @@ function createTables() {
 			surname VARCHAR(255) NOT NULL,\
 			patronymic VARCHAR(255),\
 			email VARCHAR(255) UNIQUE,\
-			hash VARCHAR(161)\
+			hash VARCHAR(193) NOT NULL\
 		);\
 		\
 		CREATE TABLE IF NOT EXISTS user_roles(\
@@ -109,13 +109,6 @@ function createTables() {
 			form_id INTEGER REFERENCES forms ON DELETE CASCADE,\
 			list JSON NOT NULL,\
 			received TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
-		);\
-		\
-		CREATE TABLE IF NOT EXISTS reports(\
-			id SERIAL PRIMARY KEY,\
-			form_id SERIAL REFERENCES forms ON DELETE CASCADE,\
-			template JSON NOT NULL,\
-			created TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
 		);')
 }
 

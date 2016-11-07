@@ -3,11 +3,10 @@ include includes/head
 	link(rel="stylesheet", href="/styles/react-widgets.css")
 body
 	header.interview
-		nav.container
+		nav.narrow.container
 			- if (isUser)
 				- if (isAdmin)
 					a(href='/users') Пользователи
-				a(href='/journal') Журнал
 				a.pre-active(href='/forms') Формы
 				div.triangle.triangle-left
 				a.active Заполнение формы
@@ -20,7 +19,7 @@ body
 				div.triangle.triangle-right
 				include includes/signin
 
-	div#root.container
+	div#root.narrow.container
 	script#info(type="application/json").
 		{
 			"type": "INTERVIEW_FORM",

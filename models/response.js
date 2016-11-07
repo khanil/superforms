@@ -15,7 +15,7 @@ function Response() {
 	}
 
 	this.getResponsesList = function (formID) {
-		return db.query('SELECT list FROM responses WHERE form_id = $1', [formID], true);
+		return db.query('SELECT list, received FROM responses WHERE form_id = $1', [formID], true);
 	}
 
 	this.add = function (answers, formID) {

@@ -29,8 +29,11 @@ module.exports = function(req, res, next) {
 			let requiredDataString = 'REQUIRED DATA: ';
 			
 			requiredModels.forEach( (model, i) => {
-				req[model.name] = result[i];
-				requiredDataString += model.name + ': ' + (result[i]? result[i].id : 'NOT FOUND') + '; ';
+				let modelName = model.constructor.name.toLowerCase()
+				req[modelName] = result[i];
+				requiredDataString += modelName + ': ' + (result[i]? 
+					result[i].id : 'NOT FOUND'
+				) + '; ';
 			})
 
 			logger.INFO(requiredDataString);

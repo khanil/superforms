@@ -12,12 +12,9 @@ exports.save = function(req, res, next) {
 		.then(result => {
 			if(result) {
 				if(!req.form.allowrefill) {
-					if(!req.session.completedForms){
-						req.session.completedForms = [];
-					}
+					req.session.completedForms = req.session.completedForms || [];
 					req.session.completedForms.push(req.params.id);
 				}
-				
 				res.sendStatus(200);
 			}
 		})
@@ -41,12 +38,12 @@ exports.sendResponsesPage = function(req, res, next) {
 
 
 exports.getXlsx = function (req, res, next) {
+	const form = req.form.template;
 	return responses.getResponsesList(req.form.id)
 		.then(result => {
 			if(result) {
-				var form = req.form.template;
 				return {
-					name : form.name,
+					name : form.title,
 					description : form.description,
 					questions : getQuestionsFromTemplate(form.items),
 					responses : result
@@ -62,8 +59,7 @@ exports.getXlsx = function (req, res, next) {
 		['catch'](next)
 }
 
-/** get question titles from form template (except plaseholders and images)	
-	and find out indexes of 'date' type questions **/
+// get question titles from the form template (except files)
 function getQuestionsFromTemplate(items) {
 	questions = [];
 	for(var i = 0; i < items.length; i++) {
@@ -71,7 +67,6 @@ function getQuestionsFromTemplate(items) {
 			questions.push(items[i])
 		}
 	}
-	// console.log(this.indexesOfDateQuestions)
 	return questions;
 }
 

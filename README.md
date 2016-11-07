@@ -4,7 +4,7 @@ Node.js web-app that allows to generate survey forms, send them, collect respons
 
 #Installation
 
-1. Install [Node.js](https://nodejs.org/en/) (version >= v5.2.0).
+1. Install [Node.js](https://nodejs.org/en/) (version >= v6.4.0).
 
 2. Install [PostgreSQL](https://www.postgresql.org/download/) (version >= 9.4.0).
 

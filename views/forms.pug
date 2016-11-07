@@ -3,18 +3,17 @@ include includes/head
 	link(rel="stylesheet", href="/styles/react-widgets.css")
 body
 	header.forms
-		nav.container
+		nav.wide.container
 			- if (isAdmin)
-				a(href='/users') Пользователи
-			a.pre-active(href='/journal') Журнал
+				a.pre-active(href='/users') Пользователи
 			div.triangle.triangle-left
 			a.active Формы
 			div.triangle.triangle-right
 			include includes/signout
 	
-	div.container.create-form
+	div.wide.container.create-form
 		a.btn.btn-success(href="/forms/new") Создать форму 
-	div#root.container
+	div#root.wide.container
 	script#info(type="application/json").
 		{
 			"getUrl": "/api/forms",
@@ -25,6 +24,12 @@ body
 			"editUrl": "/forms/id/edit",
 			"reportUrl": "/forms/id/responses",
 			"sendUrl": "/api/forms/id/send",
-			"statusUrl": "/api/forms/id/status"
+			"statusUrl": "/api/forms/id/status",
+			"getAllUrl": "/api/allforms",
+			"setDefaultTab": "/api/setdefaulttab",
+			"tab": "#{defaultTab}"
 		}
-	script(type="text/javascript", src="/scripts/main.js")
+	- if (unstable)
+		script(type="text/javascript", src="/scripts/forms-new.js")
+	-else
+		script(type="text/javascript", src="/scripts/main.js")
