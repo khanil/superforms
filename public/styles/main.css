@@ -628,6 +628,11 @@ div.container.message {
   overflow-x: hidden;
   text-overflow: ellipsis;
 }
+
+.super-table_name_journal .super-table__cell_id_basis > span,
+.super-table_name_form-list .super-table__cell_id_basis > span {
+  cursor: help;
+}
  
 /** Journal Table Styles*/
 .super-table_name_journal table {

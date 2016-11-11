@@ -2,7 +2,7 @@
 	"port" : 3000,
 	"domain" : "http://5.17.125.174:40080/",
 	"pg" : {
-		"url" : "postgres://user:password@localhost:5432/db_name",
+		"url" : "postgres://postgres:020199409@localhost:5432/superforms",
 		"poolIdleTimeout" : 30000
 	},
 	"session" : {
