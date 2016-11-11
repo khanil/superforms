@@ -647,3 +647,94 @@ div.container.message {
 .loading-spinner span {
   margin-left: 5px;
 }
+
+/*Responses table*/
+
+.form-responses .th-tip {
+  vertical-align: top;
+  margin-left: 5px;
+  cursor: help;
+}
+
+.form-responses__header {
+
+}
+
+.form-responses__header .description {
+  vertical-align: top;
+  margin-left: 5px;
+  cursor: help;
+  font-size: 20px;
+}
+
+.form-responses__header .type {
+  font-size: 16px;
+}
+
+.form-responses__header .type span:first-child,
+.form-responses__header .basis span:first-child {
+  display: inline-block;
+  font-weight: 700;
+  margin-right: 5px;
+}
+
+.form-responses__header .basis {
+  font-size: 16px;
+}
+
+.form-responses button {
+  margin-top: 8px;
+}
+
+
+.super-form__header {
+  margin-bottom: 22px;
+}
+
+.super-form__header-title {
+  display: block;
+  font-size: 34px;
+}
+
+.super-form__header-description {
+  display: block;
+  margin-top: 22px;
+  font-size: 13px;
+}
+
+.form-interview .super-form__item {
+}
+
+.form-interview .super-form__item-title {
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.form-interview .super-form__item-description {
+  display: block;
+  font-size: 13px;
+}
+
+.form-interview .super-form__item > input,
+.form-interview .super-form__item > textarea,
+.form-interview .super-form__item > div {
+  margin-top: 12px;
+}
+
+.super-form__item_type_question {
+  
+}
+
+.super-form__item_type_delimeter {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.form-interview .super-form__item_type_delimeter .super-form__item-title {
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.super-form__item_type_delimeter hr {
+  margin-top: 0;
+}

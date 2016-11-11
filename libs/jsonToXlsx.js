@@ -27,8 +27,7 @@ function prepare(json) {
 	let {question, responses} = json;
 	let result = {
 		cols: [],
-		rows:
-		responses.map(() => []) 
+		rows: responses.map(() => []) 
 	};
 
 	let delCount = 0,
@@ -44,7 +43,7 @@ function prepare(json) {
 		result.rows[row][0] = received;
 	}
 
-	// fill columns
+	// fill columns with rows
 	for(let col = 0; col < questions.length; col++) {
 		if(questions[col]._type === 'question') {
 			// parse the responses for the multiple select question

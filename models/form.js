@@ -36,6 +36,8 @@ function Form() {
 					forms.template::json->>'title' AS title,
 					forms.template::json->>'type' AS type,
 					forms.template::json->>'description' AS description,
+					forms.template::json->>'basis' AS basis,
+					forms.template::json->>'basisname' AS basisname,
 					forms.created, forms.edited, forms.sent, forms.expires, forms.allowrefill
 				FROM forms
 				WHERE forms.user_id IN (
