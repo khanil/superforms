@@ -66,7 +66,6 @@ module.exports = function (app) {
 	app.delete('/api/forms/:id/delete', loadData, checkAuth, checkFormByAuthor, forms.delete);
 	app.post('/api/forms/:id/send', loadData, checkAuth, checkFormByAuthor, forms.send);
 
-
 	app.get('/api/forms/:id/responses', loadData,  checkAuth, checkFormByOrg, responses.getAll);//get all responses
 	app.get('/api/forms/:id/responses/xlsx', loadData, checkAuth, checkFormByOrg, responses.getXlsx);//get all responses
 	app.get('/api/forms/:id/responses/:response_id', loadData, checkAuth, 

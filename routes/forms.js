@@ -11,8 +11,7 @@ Sending of HTML pages
 exports.sendFormsPage = (req, res) => {
 	res.render('forms', { 
 		isAdmin: users.isAdmin(req.user), 
-		unstable: ~req.url.indexOf('forms-new'),
-		defaultTab: req.session.defaultTab 
+		defaultTab: req.session.defaultTab
 	})
 }
 

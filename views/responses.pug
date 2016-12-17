@@ -10,13 +10,8 @@ body
 			a.active Ответы
 			div.triangle.triangle-right
 			include includes/signout
-					
+
 	div#root.wide.container
-	script#info(type="application/json").
-		{
-			"getUrl": "/api/forms/#{id}/responses",
-			"responsePreviewUrl": "/forms/#{id}/responses/response_id",
-			"buildReportUrl": "/api/forms/#{id}/reports",
-			"buildCSVUrl": "/api/forms/#{id}/responses/xlsx"
-		}
+	script#config(type="application/json").
+		!{JSON.stringify(config)}
 	script(type="text/javascript", src="/scripts/report.js")

@@ -2,8 +2,9 @@ var config = require('../config');
 var db = require('./db')
 var Hashids = require("hashids");
 var hashids = new Hashids(config.get("hash:form:salt"), config.get("hash:form:length"));
-var Object = require('../libs/improvedObject') 
+const {Object} = require('../libs/extraMethods');
 var user = require('./user')
+
 
 function Form() {
 

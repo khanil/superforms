@@ -1,8 +1,8 @@
-{	
+{
 	"port" : 3000,
 	"domain" : "http://5.17.125.174:40080/",
 	"pg" : {
-		"url" : "postgres://postgres:020199409@localhost:5432/superforms",
+		"url" : "postgres://hellmaker:justdoit@localhost:5432/sforms",
 		"poolIdleTimeout" : 30000
 	},
 	"session" : {
@@ -27,8 +27,8 @@
 			"port": 465,
 			"secure": true,
 			"auth": {
-				"user": "mail_login",
-				"pass": "mail_password"
+                "user": "g-f@mosk.spb.ru",
+				"pass": "U3z9O0z4"
 			},
 			"tls":{ "rejectUnauthorized": false	}
 	},

@@ -14,7 +14,7 @@ body
 			include includes/signout
 		
 	div#root.narrow.container
-	script#info(type="application/json").
+	script#config(type="application/json").
 		{
 			"type": "ANSWER_REVIEW",
 			"getUrl": "/api/forms/#{id}/responses/#{response_id}"

@@ -1,33 +1,8 @@
-String.prototype.pick = function(min, max) {
-	var n, chars = '';
-	n = (typeof max === 'undefined') ? 
-		min : min + Math.round(Math.random() * (max - min + 1));
-
-	for (var i = 0; i < n; i++) {
-		chars += this.charAt(Math.round(Math.random() * this.length));
-	}
-	return chars;
-};
-
-String.prototype.shuffle = function() {
-	var array = this.split('');
-	var tmp, current, top = array.length;
-
-	if (top) while (--top) {
-		current = Math.floor(Math.random() * (top + 1));
-		tmp = array[current];
-		array[current] = array[top];
-		array[top] = tmp;
-	}
-	return array.join('');
-};
-
-
 function User() {
 	var config = require('../config');
 	var CryptoJS = require('../libs/cryptoJS')
 	var db = require('./db.js');
-	var Object = require('../libs/improvedObject');
+	const {Object} = require('../libs/extraMethods');
 	var Hashids = require("hashids");
 	var hashids = {
 		user : new Hashids(config.get('hash:user:salt'), config.get('hash:user:length')),
@@ -82,7 +57,8 @@ function User() {
 		JOIN status ON status.id = logs.status_id
 		JOIN user_roles ON user_roles.user_id = logs.user_id
 		JOIN roles ON roles.id = user_roles.role_id
-		WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs logs GROUP BY user_id);`, 
+		WHERE logs.changed IN (SELECT MAX(changed) FROM user_status_logs logs GROUP BY user_id)
+		ORDER BY users.id;`, 
 		[], true
 	)
 

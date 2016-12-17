@@ -58,67 +58,67 @@ exports.create = () => {
 		createSessionsTable(),
 		createStatusTableAndFill(),
 		createRolesTableAndFill(),
-		createTables(),
-		createRegConfirmTable()
+		createTables()	
 	])
+	.then(() => createRegConfirmTable())
 	.catch(logger.ERROR);
 }
 
 
 function createTables() {
 	return query(
-		'CREATE TABLE IF NOT EXISTS organizations(\
-			id SERIAL PRIMARY KEY,\
-			name VARCHAR(255) UNIQUE\
-		);\
-		\
-		CREATE TABLE IF NOT EXISTS users(\
-			id SERIAL PRIMARY KEY,\
-			name VARCHAR(255) NOT NULL,\
-			surname VARCHAR(255) NOT NULL,\
-			patronymic VARCHAR(255),\
-			email VARCHAR(255) UNIQUE,\
-			hash VARCHAR(193) NOT NULL\
-		);\
-		\
-		CREATE TABLE IF NOT EXISTS user_roles(\
-			user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,\
-			organization_id INTEGER DEFAULT 1 REFERENCES organizations(id) ON DELETE CASCADE,\
-			role_id INTEGER DEFAULT 3 REFERENCES roles(id) ON DELETE CASCADE\
-		);\
-		\
-		CREATE TABLE IF NOT EXISTS user_status_logs(\
-			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,\
-			status_id INTEGER DEFAULT 2 REFERENCES status(id) ON DELETE RESTRICT,\
-			changed TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
-		);\
-		\
-		CREATE TABLE IF NOT EXISTS forms(\
-			id SERIAL PRIMARY KEY,\
-			user_id SERIAL REFERENCES users ON DELETE CASCADE,\
-			template JSON NOT NULL,\
-			created TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,\
-			edited TIMESTAMP WITH TIME ZONE,\
-			sent TIMESTAMP WITH TIME ZONE,\
-			expires TIMESTAMP WITH TIME ZONE,\
-			allowrefill BOOLEAN DEFAULT FALSE\
-		);\
-		\
-		CREATE TABLE IF NOT EXISTS responses(\
-			id SERIAL PRIMARY KEY,\
-			form_id INTEGER REFERENCES forms ON DELETE CASCADE,\
-			list JSON NOT NULL,\
-			received TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp\
-		);')
+		`CREATE TABLE IF NOT EXISTS organizations(
+			id SERIAL PRIMARY KEY,
+			name VARCHAR(255) UNIQUE
+		);
+		
+		CREATE TABLE IF NOT EXISTS users(
+			id SERIAL PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			surname VARCHAR(255) NOT NULL,
+			patronymic VARCHAR(255),
+			email VARCHAR(255) UNIQUE,
+			hash VARCHAR(193) NOT NULL
+		);
+		
+		CREATE TABLE IF NOT EXISTS user_roles(
+			user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+			organization_id INTEGER DEFAULT 1 REFERENCES organizations(id) ON DELETE CASCADE,
+			role_id INTEGER DEFAULT 3 REFERENCES roles(id) ON DELETE CASCADE
+		);
+		
+		CREATE TABLE IF NOT EXISTS user_status_logs(
+			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			status_id INTEGER DEFAULT 2 REFERENCES status(id) ON DELETE RESTRICT,
+			changed TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp
+		);
+		
+		CREATE TABLE IF NOT EXISTS forms(
+			id SERIAL PRIMARY KEY,
+			user_id SERIAL REFERENCES users ON DELETE CASCADE,
+			template JSON NOT NULL,
+			created TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+			edited TIMESTAMP WITH TIME ZONE,
+			sent TIMESTAMP WITH TIME ZONE,
+			expires TIMESTAMP WITH TIME ZONE,
+			allowrefill BOOLEAN DEFAULT FALSE
+		);
+		
+		CREATE TABLE IF NOT EXISTS responses(
+			id SERIAL PRIMARY KEY,
+			form_id INTEGER REFERENCES forms ON DELETE CASCADE,
+			list JSON NOT NULL,
+			received TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp
+		);`)
 }
 
 
 function createStatusTableAndFill() {
-	return query('\
-			CREATE TABLE status(\
-				id SERIAL PRIMARY KEY,\
-				name VARCHAR(255) UNIQUE\
-			);'
+	return query(
+			`CREATE TABLE status(
+				id SERIAL PRIMARY KEY,
+				name VARCHAR(255) UNIQUE
+			);`
 		)
 		.then( () => query("INSERT INTO status(name) VALUES('waiting'), ('active'), ('banned');"))
 		.then( () => { logger.log('INFO', '"status" table has been created and filled.') })
@@ -129,11 +129,11 @@ function createStatusTableAndFill() {
 
 
 function createRolesTableAndFill() {
-	return query('\
-			CREATE TABLE roles(\
-				id SERIAL PRIMARY KEY,\
-				name VARCHAR(255) UNIQUE\
-			);'
+	return query(
+			`CREATE TABLE roles(
+				id SERIAL PRIMARY KEY,
+				name VARCHAR(255) UNIQUE
+			);`
 		)
 		.then( () => query("INSERT INTO roles(name) VALUES('root'), ('admin'), ('employee');"))
 		.then( () => { logger.log('INFO', '"roles" table has been created and filled.') })
@@ -145,16 +145,16 @@ function createRolesTableAndFill() {
 
 function createSessionsTable() {
 	return query(
-			'CREATE TABLE sessions (\
-				"sid" varchar NOT NULL COLLATE "default",\
-				"sess" JSON NOT NULL,\
-				"expire" TIMESTAMP(6) NOT NULL\
-			) WITH (OIDS=FALSE);'
+			`CREATE TABLE sessions (
+				"sid" varchar NOT NULL COLLATE "default",
+				"sess" JSON NOT NULL,
+				"expire" TIMESTAMP(6) NOT NULL
+			) WITH (OIDS=FALSE);`
 		)
 		.then( () => query(
-			'ALTER TABLE sessions \
-			ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid")\
-			NOT DEFERRABLE INITIALLY IMMEDIATE;')
+			`ALTER TABLE sessions 
+			ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+			NOT DEFERRABLE INITIALLY IMMEDIATE;`)
 		)
 		.then( () => { logger.log('INFO', '"sessions" table has been created.') })
 		.catch( (err) => {
@@ -165,24 +165,24 @@ function createSessionsTable() {
 
 function createRegConfirmTable() {
 	return query(
-			'CREATE TABLE registration_tokens (\
-				user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,\
-				registered timestamp NOT NULL DEFAULT NOW(),\
-				token VARCHAR(255) UNIQUE\
-			);'
+			`CREATE TABLE registration_tokens (
+				user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+				registered timestamp NOT NULL DEFAULT NOW(),
+				token VARCHAR(255) UNIQUE
+			);`
 		)
 		// .then(() => query(
-		// 	'CREATE FUNCTION registration_tokens_delete_old_rows() RETURNS trigger\
-		// 		LANGUAGE plpgsql\
-		// 		AS $$\
-		// 		BEGIN\
-		// 			DELETE FROM registration_tokens WHERE registered < NOW() - INTERVAL \'48 hours\';\
-		// 			RETURN NEW;\
-		// 		END;\
-		// 	$$;\
-		// 	\
-		// 	CREATE TRIGGER registration_confirm_delete_old_rows_trigger\
-		// 		AFTER INSERT ON registration_tokens\
+		// 	'CREATE FUNCTION registration_tokens_delete_old_rows() RETURNS trigger
+		// 		LANGUAGE plpgsql
+		// 		AS $$
+		// 		BEGIN
+		// 			DELETE FROM registration_tokens WHERE registered < NOW() - INTERVAL '48 hours';
+		// 			RETURN NEW;
+		// 		END;
+		// 	$$;
+		// 	
+		// 	CREATE TRIGGER registration_confirm_delete_old_rows_trigger
+		// 		AFTER INSERT ON registration_tokens
 		// 		EXECUTE PROCEDURE registration_tokens_delete_old_rows();'
 		// 	)
 		// )

@@ -85,6 +85,7 @@ body.no-header {
 
 #root {
   margin-top: 30px;
+  margin-bottom: 90px;
 }
 
 .questionGenerator:nth-child(odd) {
@@ -686,11 +687,6 @@ div.container.message {
 .form-responses__header .basis {
   font-size: 16px;
 }
-
-.form-responses button {
-  margin-top: 8px;
-}
-
 
 .super-form__header {
   margin-bottom: 22px;
