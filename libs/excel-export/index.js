@@ -41,14 +41,18 @@ function generateMultiSheets(configs, xlsx) {
 	});
 }
 
-function generateContentType(configs, xlsx) {
-	var workbook = contentTypeFront;
+
+function generateWorkbook(configs,xlsx) {
+	var workbook = sheetsFront;
+	var i = 1;	
 	configs.forEach( function(config) {
-		workbook += '<Override PartName="/'+ config.fileName + '" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />';
+		workbook += '<sheet name="'+ config.name + '" sheetId="' + i +'" r:id="rId' + i + '"/>';
+		i++;
 	});
-	workbook += contentTypeBack;
-	xlsx.file('[Content_Types].xml', workbook);
+	workbook += sheetsBack;
+	xlsx.file('xl/workbook.xml', workbook);
 }
+
 
 function generateRel(configs,xlsx) {
 	var workbook = relFront;
@@ -65,16 +69,16 @@ function generateRel(configs,xlsx) {
 			  + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
 }
 
-function generateWorkbook(configs,xlsx) {
-	var workbook = sheetsFront;
-	var i = 1;	
+
+function generateContentType(configs, xlsx) {
+	var workbook = contentTypeFront;
 	configs.forEach( function(config) {
-		workbook += '<sheet name="'+ config.name + '" sheetId="' + i +'" r:id="rId' + i + '"/>';
-		i++;
+		workbook += '<Override PartName="/'+ config.fileName + '" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />';
 	});
-	workbook += sheetsBack;
-	xlsx.file('xl/workbook.xml', workbook);
+	workbook += contentTypeBack;
+	xlsx.file('[Content_Types].xml', workbook);
 }
+
 
 function generateSharedStringsFile(xlsx){
 	if (shareStrings.length > 0) {
@@ -99,12 +103,8 @@ exports.execute = function(config) {
 	shareStrings = new SortedMap();
 	convertedShareStrings = "";  
   
-	var configs = [];
-	if (config instanceof Array) {
-		configs = config;
-	}else{
-		configs.push(config);
-	}
+	const configs = config instanceof Array? config : [ config ];
+
 	generateMultiSheets(configs, xlsx);
 	generateWorkbook(configs, xlsx);
 	generateRel(configs,xlsx) ;

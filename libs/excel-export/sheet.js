@@ -26,31 +26,28 @@ class Sheet {
 		this.shareStrings = shareStrings;
 		this.convertedShareStrings = convertedShareStrings;
 		this.originDate = new Date(Date.UTC(1899,11,30));
-
-		const self = this;
-		this.getHandlerByType = {
-			number: this.addNumberCell.bind(self),
-			string: this.addStringCell.bind(self),
-			datetime: this.addDatetimeCell.bind(self),
-			date: this.addDatetimeCell.bind(self),
-			time: this.addDatetimeCell.bind(self)
+		this.handlersByTypes = {
+			number: this.addNumberCell,
+			string: this.addStringCell,
+			datetime: this.addDatetimeCell,
+			date: this.addDatetimeCell,
+			time: this.addDatetimeCell
 		}
 	}
 
 
 	generate() {
-		//console.log(this.config)
 		var config = this.config;
-		const {header, body} = config;
+		const {name, header, body} = config;
 		var xlsx = this.xlsx;
 
-		config.fileName = 'xl/worksheets/' + header.title.replace(/[*?\]\[\/\/]/g, '') + '.xml';
+		config.fileName = 'xl/worksheets/' + name.replace(/[*?\]\[\/\/]/g, '') + '.xml';
 
-		this.rows = [];
+		this.xmlRows = [];
 		this.fillTableHeader(header.columns);
-		// this.fillTableBody(body);
-		// console.log(this.rows);
-		xlsx.file(config.fileName, sheetFront + '<x:sheetData>' + this.rows.join('') + '</x:sheetData>' + sheetBack);
+		this.fillTableBody(body);
+		// console.log(this.xmlRows);
+		xlsx.file(config.fileName, sheetFront + '<x:sheetData>' + this.xmlRows.join('') + '</x:sheetData>' + sheetBack);
 		delete this.sheetData;
 	}
 
@@ -62,17 +59,19 @@ class Sheet {
 		this.colNum = 0;
 		
 		this.fillHeaderRows(columns);
+		// console.log(this.xmlRows);
 		// complete cells of the each row and add row tags
-		for(let i = 0; i < this.rows.length; i++) {
-			this.fillEmptyCells(i, this.rows[i].length, this.colNum);
-			this.rows[i] = `<row r="${i + 1}">${this.rows[i].join('')}</row>`;
+		for(let i = 0; i < this.xmlRows.length; i++) {
+			this.fillEmptyCells(i, this.xmlRows[i].length, this.colNum);
+			this.xmlRows[i] = `<row r="${i + 1}">${this.xmlRows[i].join('')}</row>`;
+			// console.log(this.xmlRows[i])
 		}
 	}
 
 	// recursive filling the table header rows
 	fillHeaderRows(columns, rowNum=0) {
-		let cellRef, cells = this.rows[rowNum];
-		!cells && (cells = this.rows[rowNum] = []);
+		let cellRef, cells = this.xmlRows[rowNum];
+		!cells && (cells = this.xmlRows[rowNum] = []);
 	
 		columns.forEach((section, i) => {
 			this.fillEmptyCells(rowNum, cells.length, this.colNum)
@@ -87,7 +86,7 @@ class Sheet {
 
 	// fill empty cells
 	fillEmptyCells(rowNum, start, end) {
-		let cells = this.rows[rowNum], cellRef;
+		let cells = this.xmlRows[rowNum], cellRef;
 		for(let j = start; j < end; j++) {
 			cellRef = this.getColumnLetter(j + 1) + (rowNum + 1);
 			cells[j] = this.addStringCell(cellRef, '');
@@ -97,58 +96,63 @@ class Sheet {
 				// writeCell = typeof processBeforeWrite === 'function'?
 				// 	this.processAndWrite.bind(this) : this.writeCells.bind(this);
 
+			// if(colsOpts[j]) {
+			// 	// if column has a type or a processBeforeWrite function
+			// 	const {type, processBeforeWrite} = colsOpts[j];
+			// 	colsOpts[j].addCell = this.getHandlerByType[type] || this.addStringCell;
+			// 	writeCell = typeof processBeforeWrite === 'function'? this.processAndWrite : this.writeCells;
+			// } else {
+			// 	colsOpts[j] = { addCell: this.addStringCell.bind(this) };
+			// 	writeCell = this.writeCells;
+			// }
 
-	fillTableBody({ bodyRows, columnsOptions=[] }) {
-		if(!bodyRows) return '';
-		let i, j, writeCell, xmlCell;
-		const headLength = this.rows.length, 
-			bodyLenght = bodyRows.length,
+	fillTableBody({ rows, colsOpts=[] }) {
+		// console.log(rows, colsOpts)
+		if( !(rows && rows.length) ) return '';
+		let i, j, writeCell, cellOpts;
+		const headLength = this.xmlRows.length, 
+			bodyLenght = rows.length,
 			tableLength = headLength + bodyLenght;
 
 		for(i = headLength; i < tableLength; i++){
-			this.rows[i] = `<row r="${i + 1}">`;
+			this.xmlRows[i] = `<row r="${i + 1}">`;
 		}
 		// fill the table by columns
-		for(j = 0; j < bodyRows[0].length; j++) {
-			if(columnsOptions[j]) {
-				const {colType, processBeforeWrite} = columnsOptions[j];
-				console.log('preprocessing', colType, this.getHandlerByType[colType]);
-				columnsOptions[j].addCell = this.getHandlerByType[colType];
-				writeCell = typeof processBeforeWrite === 'function'? this.processAndWrite : this.writeCells;
-			} else {
-				console.log('without preprocessing')
-				columnsOptions[j] = { addCell: this.addStringCell.bind(this) };
-				writeCell = this.writeCells;
-			}
-			writeCell = writeCell.bind(this);
+		for(j = 0, cellOpts = null; j < rows[0].length; j++) {
+			writeCell = colsOpts[j] && (typeof colsOpts[j].processBeforeWrite === 'function')?
+				this.processAndWrite.bind(this) :
+				this.writeCell.bind(this);
 			// fill by rows
-			for(i = 0; i < bodyRows.length; i++) {
-				xmlCell = writeCell(bodyRows[i][j], i + headLength, j, columnsOptions[j]);
-				this.rows[i + headLength] += xmlCell;
+			for(i = 0; i < rows.length; i++) {
+				cellOpts = Object.assign({ i: i + headLength, j }, colsOpts[j]);
+				this.xmlRows[i + headLength] += writeCell(rows[i][j], cellOpts);
 			}
 		}
 		
 		for(i = headLength; i < tableLength; i++) {
-			this.rows[i] += '</row>';
+			this.xmlRows[i] += '</row>';
 		}
 	}
 
+
+	getWriteHandlerByType(dataType) {
+		let writer = this.handlersByTypes[dataType] || this.addStringCell;
+		return writer.bind(this);
+	}
+
 	// handle the cell data before write
-	processAndWrite(cellData, rowNum, colNum, colOptions) {
-		let cellOptions = Object.assing({}, colOptions);
-
-		cellData = processBeforeWrite(cellData, rowNum, colNum, cellOptions);
-		cellOptions.addCell = this.getHandlerByType[cellOptions.colType];
-
-		return writeCells(cellData, rowNum, colNum, cellOptions)
+	processAndWrite(cellData, cellOpts) {
+		// console.log('preprocess: ' + cellData, cellOpts)
+		cellData = processBeforeWrite(cellData, cellOpts);
+		return writeCells(cellData, cellOpts)
 	}
 
 
-	writeCells(cellData, rowNum, colNum, cellOptions='string') {
-		const cellRef = this.getColumnLetter(colNum + 1) + (rowNum + 1);
-		const {addCell, styleIndex} = cellOptions;
-		// console.log(cellOptions);
-		return addCell(cellRef, cellData, styleIndex);
+	writeCell(cellData, cellOpts) {
+		// console.log('write: ' + cellData, cellOpts)
+		const cellRef = this.getColumnLetter(cellOpts.j + 1) + (cellOpts.i + 1);
+		const addCell = this.getWriteHandlerByType(cellOpts.type);
+		return addCell(cellRef, cellData, cellOpts.styleIndex);
 	}
 
 
@@ -169,25 +173,27 @@ class Sheet {
 		}
 		const milliseconds = value - this.originDate;
 		value = milliseconds / (24 * 60 * 60 * 1000);
-
-		return generateNumberCell(cellRef, value, styleIndex);
+		return this.generateNumberCell(cellRef, value, styleIndex);
 	}
 
 
 	addStringCell(cellRef, value, styleIndex=0) {
 		if(value === null) return '';
 		if(typeof value !== 'string') {
-			value = invalidChars.replacer(value);
-				// .replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]/g,'')
+			value = invalidChars
+				.replacer(value)
+				.replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]/g,'');
 		}
 		return this.generateStringCell(cellRef, value, styleIndex);
 	}
 
 	// the XML cell with number or date value
 	generateNumberCell(cellRef, value, styleIndex) {
-		return value === null? 
+		const xmlCell = value === null? 
 			'' : 
-			`<c r="${cellRef}" s="${styleIndex}" t="s"><v>${value}</v></c>`;
+			`<c r="${cellRef}" s="${styleIndex}"><v>${value}</v></c>`;
+		// console.log(xmlCell);
+		return xmlCell;
 	}
 
 	// the XML cell with string value. The strings locate in shareStrings.xml.
@@ -196,7 +202,9 @@ class Sheet {
 			return `<c r="${cellRef}" s="${styleIndex}" />`;
 		}
 		const index = this.addValueIntoShareStrings(value);
-		return `<c r="${cellRef}" s="${styleIndex}" t="s"><v>${index}</v></c>`;
+		const xmlCell = `<c r="${cellRef}" s="${styleIndex}" t="s"><v>${index}</v></c>`;
+		// console.log(xmlCell);
+		return xmlCell;
 	}
 
 

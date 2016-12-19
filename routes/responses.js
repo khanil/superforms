@@ -42,7 +42,7 @@ exports.sendResponsesPage = function(req, res, next) {
 		config: {
 			user_id: req.params.user_id,
 			form_id: req.params.id, 
-			timeout: 30000
+			timeout: 3000000
 		}
 	});
 };
@@ -51,25 +51,36 @@ exports.sendResponsesPage = function(req, res, next) {
 exports.getXlsx = function (req, res, next) {
 	const form = req.form.template;
 	return responses.getResponsesList(req.form.id)
-		.then(result => {
-			if(result) {
-				return {
-					name : form.title,
-					description : form.description,
-					questions : getQuestionsFromTemplate(form.items),
-					responses : result
-				}
+		.then(responsesList => {
+			if(responsesList) {
+				return excelExport.executeAsync({
+					header: generateHeader(form, responsesList), 
+					body: generateBody(form.items, responsesList)
+				})
 			}
 		})
-		// .then(table => jsonToXlsx(table))
-		// .then(xls => {
-		// 	res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-		// 	res.setHeader("Content-Disposition", "attachment; filename=" + "report.xlsx");
-		// 	res.end(xls, 'binary');
-		// }) 
+		.then(xls => {
+			res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+			res.setHeader("Content-Disposition", "attachment; filename=" + "report.xlsx");
+			res.end(xls, 'binary');
+		}) 
 		['catch'](next)
 }
 
+
+// .then(xlsx => {
+// 	fs.writeFile('example.xlsx', xlsx, 'binary', err => {
+// 		if (err) throw err;
+// 		console.log('It\'s saved!');
+// 	});
+// })
+// .catch(console.log)
+// return {
+// 	name : form.title,
+// 	description : form.description,
+// 	questions : getQuestionsFromTemplate(form.items),
+// 	responses : result
+// }
 
 function generateHeader(form, responsesList) {
 	const {title, items} = form;
@@ -89,7 +100,7 @@ function generateHeader(form, responsesList) {
 			currSection.push(question);
 		}
 	}
-	return { title, columns };
+	return { columns };
 }
 
 
@@ -106,8 +117,8 @@ const xmlTypes = {
 
 
 function generateBody(questions, responses) {
-	let columnsOptions = [], bodyRows = responses.map(() => []), delCount = 0;
-	let body = { bodyRows, columnsOptions };
+	let columnsOptions = [], rows = responses.map(() => []), delCount = 0;
+	let body = { rows, columnsOptions };
 
 	for(let col = 0; col < questions.length; col++) {
 		if(questions[col]._type === 'question') {
@@ -115,9 +126,9 @@ function generateBody(questions, responses) {
 				addQuestionOptions(body, responses, questions[col].options, col - delCount);
 			} else {
 				for(var row = 0; row < responses.length; row++) {
-					bodyRows[row].push(responses[row].list[col - delCount])
+					rows[row].push(responses[row].list[col - delCount])
 				}
-				columnsOptions.push({ colType: xmlTypes[questions[col].type] });
+				columnsOptions.push({ type: xmlTypes[questions[col].type] });
 			}
 
 		} else if(questions[col]._type === 'delimeter' 
@@ -130,7 +141,7 @@ function generateBody(questions, responses) {
 
 
 function addQuestionOptions(body, responses, options, colNum) {
-	const {bodyRows, columnsOptions} = body;
+	const {rows, columnsOptions} = body;
 	// for each option of multiple select
 	for(let i = 0; i < options.length; i++) {
 		for(let row = 0; row < responses.length; row++) {
@@ -138,8 +149,8 @@ function addQuestionOptions(body, responses, options, colNum) {
 			cellData = selectedOpts && ~selectedOpts.indexOf(options[i]) ?
 				options[i] : '';
 
-			bodyRows[row].push(cellData);
-			columnsOptions.push({ colType: 'string' })
+			rows[row].push(cellData);
+			columnsOptions.push({ type: 'string' })
 		}
 	}
 }
@@ -171,24 +182,6 @@ const fs = require('fs')
 exports.getAll = function(req, res, next) {
 	responses.findAll(req.form.id)
 		.then(foundResponses => {
-			const config = { 
-				header: generateHeader(req.form.template, foundResponses), 
-				body: generateBody(req.form.template.items, foundResponses)
-			}
-
-			// console.log('\n\n\n\n\nFORM ID: ' + req.form.id + '\n\n\n\n\n')
-			// console.log(config.header);
-			// console.log(config.body.columnsOptions);
-			// console.log(config.body.bodyRows);
-			excelExport.executeAsync(config)
-				.then(xlsx => {
-					fs.writeFile('example.xlsx', xlsx, 'binary', (err) => {
-						if (err) throw err;
-						console.log('It\'s saved!');
-					});
-				})
-				.catch(console.log)
-
 			for(i = 0; i < foundResponses.length; i++) {
 				responses.modifyForClient(foundResponses[i]);
 			}
