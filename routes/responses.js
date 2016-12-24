@@ -2,7 +2,6 @@ var forms = require('../models/form');
 var responses = require('../models/response');
 var HttpError = require('../error').HttpError;
 var excelExport = require('../libs/excel-export');
-var jsonToXlsx = require('../libs/jsonToXlsx');
 
 var path = require('path');
 
@@ -20,7 +19,6 @@ exports.save = function(req, res, next) {
 			}
 		})
 		['catch'](next);
-	
 };
 
 
@@ -54,7 +52,7 @@ exports.getXlsx = function (req, res, next) {
 		.then(responsesList => {
 			if(responsesList) {
 				return excelExport.executeAsync({
-					header: generateHeader(form, responsesList), 
+					header: generateHeader(form, responsesList),
 					body: generateBody(form.items, responsesList)
 				})
 			}
@@ -67,20 +65,6 @@ exports.getXlsx = function (req, res, next) {
 		['catch'](next)
 }
 
-
-// .then(xlsx => {
-// 	fs.writeFile('example.xlsx', xlsx, 'binary', err => {
-// 		if (err) throw err;
-// 		console.log('It\'s saved!');
-// 	});
-// })
-// .catch(console.log)
-// return {
-// 	name : form.title,
-// 	description : form.description,
-// 	questions : getQuestionsFromTemplate(form.items),
-// 	responses : result
-// }
 
 function generateHeader(form, responsesList) {
 	const {title, items} = form;
@@ -104,21 +88,42 @@ function generateHeader(form, responsesList) {
 }
 
 
-const xmlTypes = {
-	integer: 'number',
-	float: 'number',
-	string: 'string',
-	select: 'string',
-	paragraph: 'string',
-	datetime: 'datetime',
-	date: 'date',
-	time: 'time'
+const exportOpts = {
+	integer: { type: 'number' },
+	float: { type: 'number', processBeforeWrite: floatToNumber },
+	financial: { type: 'number', processBeforeWrite: floatToNumber },
+	string: { type: 'string', processBeforeWrite: stringToNumber },
+	select: { type: 'string', processBeforeWrite: stringToNumber },
+	paragraph: { type: 'string', processBeforeWrite: stringToNumber },
+	datetime: { type: 'datetime' },
+	date: { type: 'date' },
+	time: { type: 'time' }
 }
 
 
+function stringToNumber(cellData, cellOpts) {
+	if(cellData === '' || typeof cellData !== 'string') return '';
+	if(!~cellData.search(/[^\d,.]/)) {
+		const num = +cellData || +cellData.replace(/,/, '.');
+		if(!isNaN(num)) {
+			cellOpts.type = 'number';
+			return num;
+		}
+	}
+	return cellData;
+}
+
+
+function floatToNumber(cellData) {
+	if(typeof cellData === 'string') { // the float or financial type
+		return cellData.replace(/,/, '.')
+	}
+}	
+
+
 function generateBody(questions, responses) {
-	let columnsOptions = [], rows = responses.map(() => []), delCount = 0;
-	let body = { rows, columnsOptions };
+	let colsOpts = [], rows = responses.map(() => []), delCount = 0;
+	let body = { rows, colsOpts }, colType, options;
 
 	for(let col = 0; col < questions.length; col++) {
 		if(questions[col]._type === 'question') {
@@ -128,9 +133,8 @@ function generateBody(questions, responses) {
 				for(var row = 0; row < responses.length; row++) {
 					rows[row].push(responses[row].list[col - delCount])
 				}
-				columnsOptions.push({ type: xmlTypes[questions[col].type] });
+				colsOpts.push(exportOpts[questions[col].type]);
 			}
-
 		} else if(questions[col]._type === 'delimeter' 
 		|| questions[col]._type === 'image') {
 			++delCount;
@@ -141,7 +145,7 @@ function generateBody(questions, responses) {
 
 
 function addQuestionOptions(body, responses, options, colNum) {
-	const {rows, columnsOptions} = body;
+	const {rows, colsOpts} = body;
 	// for each option of multiple select
 	for(let i = 0; i < options.length; i++) {
 		for(let row = 0; row < responses.length; row++) {
@@ -150,22 +154,9 @@ function addQuestionOptions(body, responses, options, colNum) {
 				options[i] : '';
 
 			rows[row].push(cellData);
-			columnsOptions.push({ type: 'string' })
 		}
+		colsOpts.push(exportOpts['string']);
 	}
-}
-
-
-
-// get question titles from the form template (except files)
-function getQuestionsFromTemplate(items) {
-	questions = [];
-	for(var i = 0; i < items.length; i++) {
-		if(items[i]._type === 'question' || items[i]._type === 'delimeter') {
-			questions.push(items[i]);
-		}
-	}
-	return questions;
 }
 
 

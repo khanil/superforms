@@ -8,5 +8,5 @@ const correctChars = {
 
 
 exports.replacer = str => (
-	str.replace(/[&"\><]/g, char => correctChars[char] || '')
+	str.replace(/[&"\><]/g, /*char => correctChars[char] || */'')
 )

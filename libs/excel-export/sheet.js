@@ -1,22 +1,26 @@
-// var sheetFront = `<?xml version="1.0" encoding="utf-8"?><x:worksheet xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main" 
-// xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">
-// <x:sheetPr/><x:sheetViews><x:sheetView tabSelected="1" workbookViewId="0" /></x:sheetViews>
-// <x:sheetFormatPr defaultRowHeight="15" />`;
-// var sheetBack =` <x:pageMargins left="0.75" right="0.75" top="0.75" bottom="0.5" header="0.5" footer="0.75" /><x:headerFooter /></x:worksheet>`;
+// const sheetFront = `<?xml version="1.0" encoding="utf-8"?>
+// <worksheet xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">
+// <sheetPr />
+// <sheetViews>
+// <sheetView tabSelected="1" workbookViewId="0" />
+// </sheetViews>
+// <sheetFormatPr defaultRowHeight="15" />`;
 
-var sheetFront = `<?xml version="1.0" encoding="utf-8"?>
-<x:worksheet xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">
-<x:sheetPr />
-<x:sheetViews>
-<x:sheetView tabSelected="1" workbookViewId="0" />
-</x:sheetViews>
-<x:sheetFormatPr defaultRowHeight="15" />`;
 
-var sheetBack = `<x:pageMargins left="0.75" right="0.75" top="0.75" bottom="0.5" header="0.5" footer="0.75" />
-<x:headerFooter />
-</x:worksheet>`;
+const sheetFront = `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetPr filterMode="false">
+<pageSetUpPr fitToPage="false"/>
+</sheetPr>
+<sheetViews>
+<sheetView windowProtection="false" showFormulas="false" showGridLines="true" showRowColHeaders="true" showZeros="true" rightToLeft="false" tabSelected="true" showOutlineSymbols="true" defaultGridColor="true" view="normal" topLeftCell="A1" colorId="64" zoomScale="100" zoomScaleNormal="100" zoomScalePageLayoutView="100" workbookViewId="0">
+</sheetView>
+</sheetViews>
+<sheetFormatPr defaultRowHeight="15"/>`;
 
-var fs = require('fs');
+const sheetBack = `<pageMargins left="0.75" right="0.75" top="0.75" bottom="0.5" header="0.5" footer="0.75" />
+<headerFooter />
+</worksheet>`;
+
 const invalidChars = require('./invalidChars');
 
 class Sheet {
@@ -46,8 +50,7 @@ class Sheet {
 		this.xmlRows = [];
 		this.fillTableHeader(header.columns);
 		this.fillTableBody(body);
-		// console.log(this.xmlRows);
-		xlsx.file(config.fileName, sheetFront + '<x:sheetData>' + this.xmlRows.join('') + '</x:sheetData>' + sheetBack);
+		xlsx.file(config.fileName, sheetFront + '<sheetData>' + this.xmlRows.join('') + '</sheetData>' + sheetBack);
 		delete this.sheetData;
 	}
 
@@ -59,12 +62,10 @@ class Sheet {
 		this.colNum = 0;
 		
 		this.fillHeaderRows(columns);
-		// console.log(this.xmlRows);
 		// complete cells of the each row and add row tags
 		for(let i = 0; i < this.xmlRows.length; i++) {
 			this.fillEmptyCells(i, this.xmlRows[i].length, this.colNum);
 			this.xmlRows[i] = `<row r="${i + 1}">${this.xmlRows[i].join('')}</row>`;
-			// console.log(this.xmlRows[i])
 		}
 	}
 
@@ -93,21 +94,8 @@ class Sheet {
 		}
 	}
 
-				// writeCell = typeof processBeforeWrite === 'function'?
-				// 	this.processAndWrite.bind(this) : this.writeCells.bind(this);
-
-			// if(colsOpts[j]) {
-			// 	// if column has a type or a processBeforeWrite function
-			// 	const {type, processBeforeWrite} = colsOpts[j];
-			// 	colsOpts[j].addCell = this.getHandlerByType[type] || this.addStringCell;
-			// 	writeCell = typeof processBeforeWrite === 'function'? this.processAndWrite : this.writeCells;
-			// } else {
-			// 	colsOpts[j] = { addCell: this.addStringCell.bind(this) };
-			// 	writeCell = this.writeCells;
-			// }
 
 	fillTableBody({ rows, colsOpts=[] }) {
-		// console.log(rows, colsOpts)
 		if( !(rows && rows.length) ) return '';
 		let i, j, writeCell, cellOpts;
 		const headLength = this.xmlRows.length, 
@@ -142,14 +130,12 @@ class Sheet {
 
 	// handle the cell data before write
 	processAndWrite(cellData, cellOpts) {
-		// console.log('preprocess: ' + cellData, cellOpts)
-		cellData = processBeforeWrite(cellData, cellOpts);
-		return writeCells(cellData, cellOpts)
+		cellData = cellOpts.processBeforeWrite(cellData, cellOpts);
+		return this.writeCell(cellData, cellOpts)
 	}
 
 
 	writeCell(cellData, cellOpts) {
-		// console.log('write: ' + cellData, cellOpts)
 		const cellRef = this.getColumnLetter(cellOpts.j + 1) + (cellOpts.i + 1);
 		const addCell = this.getWriteHandlerByType(cellOpts.type);
 		return addCell(cellRef, cellData, cellOpts.styleIndex);
@@ -179,10 +165,9 @@ class Sheet {
 
 	addStringCell(cellRef, value, styleIndex=0) {
 		if(value === null) return '';
-		if(typeof value !== 'string') {
-			value = invalidChars
-				.replacer(value)
-				.replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]/g,'');
+		if(typeof value === 'string') {
+			value = invalidChars.replacer(value)
+			// value = value.replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]/g,'');
 		}
 		return this.generateStringCell(cellRef, value, styleIndex);
 	}
@@ -192,7 +177,6 @@ class Sheet {
 		const xmlCell = value === null? 
 			'' : 
 			`<c r="${cellRef}" s="${styleIndex}"><v>${value}</v></c>`;
-		// console.log(xmlCell);
 		return xmlCell;
 	}
 
@@ -203,7 +187,6 @@ class Sheet {
 		}
 		const index = this.addValueIntoShareStrings(value);
 		const xmlCell = `<c r="${cellRef}" s="${styleIndex}" t="s"><v>${index}</v></c>`;
-		// console.log(xmlCell);
 		return xmlCell;
 	}
 

@@ -1,0 +1,36 @@
+.container-interview,
+.container-preview {
+  box-shadow: 0 1px 4px 0 rgba(0,0,0,0.37);
+  margin-top: 0 !important;
+  padding-top: 50px;
+  padding-bottom: 40px;
+  padding-left: 40px;
+  padding-right: 40px;
+  background-color: #fefefe;
+}
+
+body.interview {
+  background: rgba(240, 173, 78, 0.7);
+}
+
+body.preview {
+  background: rgba(99, 145, 185, 0.6);
+}
+
+.container-interview .super-form__header-description,
+.container-interview .super-form__item-description,
+.container-preview .super-form__header-description,
+.container-preview .super-form__item-description {
+  padding: 5px;
+  background-color: #d9edf7;
+}
+
+.container-preview .super-form__item-description:before,
+.container-interview .super-form__item-description:before {
+  content: "\00ab";
+}
+
+.container-preview .super-form__item-description:after,
+.container-interview .super-form__item-description:after {
+  content: "\00bb";
+}

@@ -1,7 +1,7 @@
 include includes/head
 	title Превью | SuperForms
 	link(rel="stylesheet", href="/styles/react-widgets.css")
-body
+body.preview
 	header.forms
 		nav.narrow.container
 			- if (isAdmin)
@@ -12,7 +12,7 @@ body
 			div.triangle.triangle-right
 			include includes/signout
 	//- div.col-md-4
-	div#root.narrow.container
+	div#root.narrow.container.container-preview
 	//- div.col-md-4
 	script#config(type="application/json").
 		{

@@ -1,7 +1,7 @@
 include includes/head
 	title Заполнение формы | SuperForms
 	link(rel="stylesheet", href="/styles/react-widgets.css")
-body
+body.interview
 	header.interview
 		nav.narrow.container
 			- if (isUser)
@@ -19,7 +19,7 @@ body
 				div.triangle.triangle-right
 				include includes/signin
 
-	div#root.narrow.container
+	div#root.narrow.container.container-interview
 	script#config(type="application/json").
 		{
 			"type": "INTERVIEW_FORM",
