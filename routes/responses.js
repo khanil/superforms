@@ -68,8 +68,7 @@ exports.getXlsx = function (req, res, next) {
 
 function generateHeader(form, responsesList) {
 	const {title, items} = form;
-	
-	let columns = [], currSection = columns, question;
+	let columns = [{ title: 'Получено' }], currSection = columns, question;
 
 	for(let i = 0; i < items.length; i++) {
 		if(items[i]._type === 'delimeter') {
@@ -88,42 +87,11 @@ function generateHeader(form, responsesList) {
 }
 
 
-const exportOpts = {
-	integer: { type: 'number' },
-	float: { type: 'number', processBeforeWrite: floatToNumber },
-	financial: { type: 'number', processBeforeWrite: floatToNumber },
-	string: { type: 'string', processBeforeWrite: stringToNumber },
-	select: { type: 'string', processBeforeWrite: stringToNumber },
-	paragraph: { type: 'string', processBeforeWrite: stringToNumber },
-	datetime: { type: 'datetime' },
-	date: { type: 'date' },
-	time: { type: 'time' }
-}
-
-
-function stringToNumber(cellData, cellOpts) {
-	if(cellData === '' || typeof cellData !== 'string') return '';
-	if(!~cellData.search(/[^\d,.]/)) {
-		const num = +cellData || +cellData.replace(/,/, '.');
-		if(!isNaN(num)) {
-			cellOpts.type = 'number';
-			return num;
-		}
-	}
-	return cellData;
-}
-
-
-function floatToNumber(cellData) {
-	if(typeof cellData === 'string') { // the float or financial type
-		return cellData.replace(/,/, '.')
-	}
-}	
-
-
 function generateBody(questions, responses) {
-	let colsOpts = [], rows = responses.map(() => []), delCount = 0;
-	let body = { rows, colsOpts }, colType, options;
+	let colsOpts = [{ type: 'datetime' }], // type and cell data handler function of each column
+		rows = responses.map(response => [ response.received ]);
+		body = { rows, colsOpts },
+		delCount = 0;
 
 	for(let col = 0; col < questions.length; col++) {
 		if(questions[col]._type === 'question') {
@@ -160,6 +128,40 @@ function addQuestionOptions(body, responses, options, colNum) {
 }
 
 
+const exportOpts = {
+	integer: { type: 'number' },
+	float: { type: 'number', processBeforeWrite: floatToNumber },
+	financial: { type: 'number', processBeforeWrite: floatToNumber },
+	string: { type: 'string', processBeforeWrite: stringToNumber },
+	select: { type: 'string', processBeforeWrite: stringToNumber },
+	paragraph: { type: 'string', processBeforeWrite: stringToNumber },
+	datetime: { type: 'datetime' },
+	date: { type: 'date' },
+	time: { type: 'time' }
+}
+
+
+function stringToNumber(cellData, cellOpts) {
+	if(cellData === '' || typeof cellData !== 'string') return '';
+	if(!~cellData.search(/[^\d,.]/)) {
+		const num = +cellData || +cellData.replace(/,/, '.');
+		if(!isNaN(num)) {
+			cellOpts.type = 'number';
+			return num;
+		}
+	}
+	return cellData;
+}
+
+
+function floatToNumber(cellData) {
+	if(typeof cellData === 'string') { // the float or financial type
+		return cellData.replace(/,/, '.')
+	}
+}	
+
+
+
 exports.getOne = function(req, res, next) {
 	res.send({
 		form: forms.modifyForClient(req.form),
@@ -180,11 +182,3 @@ exports.getAll = function(req, res, next) {
 		})
 		['catch'](next);
 }
-
-
-var options = {
-	year: 'numeric',
-	month: 'numeric',
-	day: 'numeric',
-	timezone: 'UTC',
-};
