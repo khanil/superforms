@@ -2,7 +2,7 @@
 	"port" : 3000,
 	"domain" : "http://5.17.125.174:40080/",
 	"pg" : {
-		"url" : "postgres://hellmaker:justdoit@localhost:5432/sforms",
+		"url" : "postgres://postgres:postgres@localhost:5432/sforms",
 		"poolIdleTimeout" : 30000
 	},
 	"session" : {

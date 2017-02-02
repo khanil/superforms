@@ -46,221 +46,273 @@
 
 	'use strict';
 
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _notification = __webpack_require__(3);
-
-	var _notification2 = _interopRequireDefault(_notification);
-
-	var _input = __webpack_require__(4);
-
-	var _input2 = _interopRequireDefault(_input);
-
-	var _select = __webpack_require__(5);
-
-	var _select2 = _interopRequireDefault(_select);
-
-	var _dictionary = __webpack_require__(6);
-
-	var _modalWindow = __webpack_require__(7);
-
-	var _modalWindow2 = _interopRequireDefault(_modalWindow);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 	var CryptoJS = __webpack_require__(2);
 	var sendRequest = __webpack_require__(1);
 
 	var eventEmitter = new EventEmitter();
 
-	var Registration = function (_React$Component) {
-		_inherits(Registration, _React$Component);
+	var Notification = React.createClass({
+		displayName: 'Notification',
 
-		function Registration() {
-			_classCallCheck(this, Registration);
+		close: function close(event) {
+			eventEmitter.emit('closeNotification');
+		},
 
-			var _this = _possibleConstructorReturn(this, (Registration.__proto__ || Object.getPrototypeOf(Registration)).call(this));
+		shapeNotification: function shapeNotification(notification) {
+			var type, message;
+			if (notification instanceof Error) {
+				type = 'danger';
+				message = notification.message;
+			} else {
+				type = 'info';
+				message = notification;
+			}
+			return React.createElement(
+				'div',
+				{ id: type, className: 'alert alert-' + type },
+				React.createElement(
+					'a',
+					{ className: 'close', onClick: this.close },
+					'\xD7'
+				),
+				React.createElement(
+					'p',
+					null,
+					message
+				)
+			);
+		},
 
-			_this.verify = {
-				email: function email(value) {
-					return value ? /@/.test(value) ? '' : 'Некорректный адрес электронной почты' : 'Введите адрес электронной почты';
-				},
-				name: function name(value) {
-					return value ? '' : 'Введите имя';
-				},
-				surname: function surname(value) {
-					return value ? '' : 'Введите фамилию';
-				},
-				patronymic: function patronymic() {
-					return '';
-				}
-			};
+		render: function render() {
+			var notification = this.props.notification;
+			return notification ? this.shapeNotification(notification) : null;
+		}
+	});
 
-			_this.roles = ['admin', 'employee'];
+	var Registration = React.createClass({
+		displayName: 'Registration',
 
-			_this.state = {
-				user: {
-					email: { value: '', requiredToFill: true, err: '' },
-					name: { value: '', requiredToFill: true, err: '' },
-					surname: { value: '', requiredToFill: true, err: '' },
-					patronymic: { value: '', requiredToFill: false, err: '' },
-					role: 'employee'
-				},
+
+		roles: {
+			'Сотрудник': 'employee',
+			'Администратор': 'admin'
+		},
+
+		verify: {
+			email: function email(value) {
+				return value ? /@/.test(value) ? '' : 'Некорректный адрес электронной почты' : 'Введите адрес электронной почты';
+			},
+			name: function name(value) {
+				return value ? '' : 'Введите имя';
+			},
+			surname: function surname(value) {
+				return value ? '' : 'Введите фамилию';
+			},
+			patronymic: function patronymic() {
+				return '';
+			}
+		},
+
+		getInitialState: function getInitialState() {
+			return {
+				user: { email: '', name: '', surname: '', patronymic: '', role: 'employee' },
+				errors: { email: '', name: '', surname: '', patronymic: '' },
 				isFetching: false,
 				notification: null
 			};
+		},
 
-			_this.changeInputStateHandler = _this.changeInputStateHandler.bind(_this);
-			_this.changeSelectStateHandler = _this.changeSelectStateHandler.bind(_this);
-			_this.submitHandler = _this.submitHandler.bind(_this);
-			_this.closeNotificationHandler = _this.closeNotificationHandler.bind(_this);
-			return _this;
+		changeState: function changeState(event) {
+			var input = event.target,
+			    newState,
+			    value;
+			if (input.id === 'role') {
+				value = this.roles[input.value];
+				newState = {
+					user: Object.assign(this.state.user, new this.UpdatedProp(input.id, value))
+				};
+			} else {
+				value = input.value.trim();
+				var err = this.verify[input.id](value);
+				newState = {
+					user: Object.assign(this.state.user, new this.UpdatedProp(input.id, value)),
+					errors: Object.assign(this.state.errors, new this.UpdatedProp(input.id, err))
+				};
+			}
+			this.setState(newState);
+		},
+
+		UpdatedProp: function UpdatedProp(prop, value) {
+			this[prop] = value;
+			return this;
+		},
+
+		componentDidMount: function componentDidMount() {
+			var _this = this;
+
+			eventEmitter.addListener('closeNotification', function () {
+				_this.setState({ notification: null });
+			});
+		},
+
+		findErrors: function findErrors() {
+			var errors = this.state.errors;
+			for (var key in errors) {
+				if (errors[key] || !(key === 'patronymic' || this.state.user[key])) return true;
+			}
+			return null;
+		},
+
+		submit: function submit() {
+			var _this2 = this;
+
+			this.setState({ isFetching: true });
+			var salt,
+			    user = this.state.user;
+
+			sendRequest('GET', 'api/users/signup').then(function (response) {
+				salt = response;
+				var hash = CryptoJS.AES.encrypt(JSON.stringify(user), salt).toString();
+				return sendRequest('POST', '/api/users/signup', hash);
+			}).then(function (id) {
+				Object.assign(user, { id: id, status: 'waiting', status_changed: new Date() });
+				eventEmitter.emit('addUser', user);
+
+				var message = '\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C ' + user.surname + ' ' + user.name + ' ' + (user.patronymic || '') + '\n\t\t\t\t\t\u0443\u0441\u043F\u0435\u0448\u043D\u043E \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D. \u041D\u0430 ' + user.email + ' \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u043E \u043F\u0438\u0441\u044C\u043C\u043E \u0434\u043B\u044F \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0438\u044F \n\t\t\t\t\t\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.';
+
+				_this2.setState({
+					notification: message,
+					isFetching: false,
+					user: { email: '', name: '', surname: '', patronymic: '', role: _this2.state.user.role }
+				});
+			}).catch(function (err) {
+				_this2.setState({
+					notification: err,
+					isFetching: false
+				});
+			});
+		},
+
+		// Object.assign(user, data)
+		// user.status = 'active';
+		// message += `\nЛогин: ${user.email} Пароль: ${user.password}`
+
+
+		render: function render() {
+			// console.log('values:', this.state.user)
+			// console.log('errors:', this.state.errors)
+			return React.createElement(
+				'div',
+				{ id: 'reg' },
+				React.createElement(
+					'h3',
+					null,
+					'\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0435\u0439:'
+				),
+				React.createElement(Notification, { notification: this.state.notification }),
+				React.createElement(
+					'div',
+					{ className: 'row control-group' },
+					React.createElement(
+						'div',
+						{ className: "col-sm-4 form-group registration" + (this.state.errors.surname ? ' has-error' : '') },
+						React.createElement('input', {
+							id: 'surname',
+							type: 'text',
+							placeholder: this.state.errors.surname || "Фамилия",
+							className: 'form-control',
+							ref: 'surname',
+							value: this.state.user.surname,
+							onChange: this.changeState })
+					),
+					React.createElement(
+						'div',
+						{ className: "col-sm-4 form-group registration" + (this.state.errors.name ? ' has-error' : '') },
+						React.createElement('input', {
+							id: 'name',
+							type: 'text',
+							placeholder: this.state.errors.name || "Имя",
+							className: 'form-control',
+							ref: 'name',
+							value: this.state.user.name,
+							onChange: this.changeState })
+					),
+					React.createElement(
+						'div',
+						{ className: "col-sm-4 form-group registration" + (this.state.errors.patronymic ? ' has-error' : '') },
+						React.createElement('input', {
+							id: 'patronymic',
+							type: 'text',
+							placeholder: this.state.errors.patronymic || "Отчество",
+							className: 'form-control',
+							ref: 'patronymic',
+							value: this.state.user.patronymic,
+							onChange: this.changeState })
+					)
+				),
+				React.createElement(
+					'div',
+					{ className: 'row' },
+					React.createElement(
+						'div',
+						{ className: "col-sm-5 registration" + (this.state.errors.email ? ' has-error' : '') },
+						React.createElement('input', {
+							id: 'email',
+							type: 'text',
+							placeholder: this.state.errors.email || "Адрес электронной почты",
+							className: 'form-control',
+							ref: 'email',
+							value: this.state.user.email,
+							onChange: this.changeState }),
+						this.state.user.email && this.state.errors.email ? React.createElement(
+							'span',
+							{ className: 'help-block' },
+							this.state.errors.email
+						) : null
+					),
+					React.createElement(
+						'div',
+						{ className: 'col-sm-4 registration' },
+						React.createElement(
+							'select',
+							{
+								id: 'role',
+								type: 'text',
+								className: 'form-control',
+								ref: 'role',
+								onChange: this.changeState },
+							React.createElement(
+								'option',
+								null,
+								'\u0421\u043E\u0442\u0440\u0443\u0434\u043D\u0438\u043A'
+							),
+							React.createElement(
+								'option',
+								null,
+								'\u0410\u0434\u043C\u0438\u043D\u0438\u0441\u0442\u0440\u0430\u0442\u043E\u0440'
+							)
+						)
+					),
+					React.createElement(
+						'div',
+						{ className: 'col-sm-3 registration', onClick: this.submit },
+						React.createElement(
+							'button',
+							{
+								id: 'addUser',
+								'data-toggle': 'tooltip',
+								title: '\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F',
+								className: 'btn btn-primary btn-block',
+								disabled: this.findErrors() || this.state.isFetching },
+							this.state.isFetching ? React.createElement('span', { className: 'glyphicon glyphicon-refresh glyphicon-refresh-animate' }) : null,
+							this.state.isFetching ? ' Проверка электронной почты...' : 'Добавить пользователя'
+						)
+					)
+				)
+			);
 		}
 
-		_createClass(Registration, [{
-			key: 'changeInputStateHandler',
-			value: function changeInputStateHandler(event) {
-				var input = event.target;
-				var newState = {
-					value: input.value.trim(),
-					err: this.verify[input.id](input.value)
-				};
-
-				this.setState({
-					user: Object.assign({}, this.state.user, _defineProperty({}, input.id, newState))
-				});
-			}
-		}, {
-			key: 'changeSelectStateHandler',
-			value: function changeSelectStateHandler(event) {
-				var input = event.target;
-				var newValue = this.intoEng[input.value];
-
-				this.setState({
-					user: Object.assign({}, this.state.user, _defineProperty({}, input.id, newValue))
-				});
-			}
-		}, {
-			key: 'findInputErrors',
-			value: function findInputErrors() {
-				var errors = this.state.errors;
-				for (var key in user) {
-					if (user[key].requiredToFill && user[key].err) return true;
-				}
-				return false;
-			}
-		}, {
-			key: 'closeNotificationHandler',
-			value: function closeNotificationHandler() {
-				this.setState({ notification: null });
-			}
-		}, {
-			key: 'submitHandler',
-			value: function submitHandler() {
-				var _this2 = this;
-
-				this.setState({ isFetching: true });
-				var salt,
-				    user = this.state.user;
-
-				sendRequest('GET', 'api/users/signup').then(function (response) {
-					salt = response;
-					var hash = CryptoJS.AES.encrypt(JSON.stringify(user), salt).toString();
-					return sendRequest('POST', '/api/users/signup', hash);
-				}).then(function (id) {
-					Object.assign(user, { id: id, status: 'waiting', status_changed: new Date() });
-					eventEmitter.emit('addUser', user);
-
-					var message = '\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C ' + user.surname + ' ' + user.name + ' ' + (user.patronymic || '') + '\n\t\t\t\t\t\u0443\u0441\u043F\u0435\u0448\u043D\u043E \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D. \u041D\u0430 ' + user.email + ' \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u043E \u043F\u0438\u0441\u044C\u043C\u043E \u0434\u043B\u044F \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0438\u044F \n\t\t\t\t\t\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.';
-
-					_this2.setState({
-						notification: message,
-						isFetching: false,
-						user: { email: '', name: '', surname: '', patronymic: '', role: _this2.state.user.role }
-					});
-				}).catch(function (err) {
-					_this2.setState({
-						notification: err,
-						isFetching: false
-					});
-				});
-			}
-		}, {
-			key: 'render',
-			value: function render() {
-				var _state = this.state;
-				var user = _state.user;
-				var notification = _state.notification;
-				// console.log(user)
-
-				return React.createElement(
-					'div',
-					{ id: 'reg' },
-					React.createElement(
-						'h3',
-						null,
-						'\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0435\u0439:'
-					),
-					React.createElement(_notification2.default, {
-						notification: notification,
-						closeHandler: this.closeNotificationHandler }),
-					React.createElement(
-						'div',
-						{ className: 'row' },
-						React.createElement(_input2.default, {
-							className: "col-sm-4 form-group registration" + (user.surname.err ? ' has-error' : ''),
-							id: 'surname',
-							placeholder: user.surname.err || "Фамилия",
-							value: user.surname.value,
-							changeStateHandler: this.changeInputStateHandler
-						}),
-						React.createElement(_input2.default, {
-							className: "col-sm-4 form-group registration" + (user.name.err ? ' has-error' : ''),
-							id: 'name',
-							placeholder: user.name.err || "Имя",
-							value: user.name.value,
-							changeStateHandler: this.changeInputStateHandler
-						}),
-						React.createElement(_input2.default, {
-							className: "col-sm-4 form-group registration",
-							id: 'patronymic',
-							placeholder: user.patronymic.err || "Отчество",
-							value: user.patronymic.value,
-							changeStateHandler: this.changeInputStateHandler
-						})
-					),
-					React.createElement(
-						'div',
-						{ className: 'row' },
-						React.createElement(_input2.default, {
-							className: "col-sm-5 form-group registration" + (user.email.err ? ' has-error' : ''),
-							id: 'email',
-							placeholder: user.email.err || "Адрес электронной почты",
-							value: user.email.value,
-							changeStateHandler: this.changeInputStateHandler,
-							helpBlock: user.email.value && user.email.err ? user.email.err : null
-						}),
-						React.createElement(_select2.default, {
-							className: "col-sm-4 form-group registration",
-							id: 'role',
-							options: this.roles,
-							changeStateHandler: this.changeSelectStateHandler
-						})
-					)
-				);
-			}
-		}]);
-
-		return Registration;
-	}(React.Component);
+	});
 
 	var Columns = React.createClass({
 		displayName: 'Columns',
@@ -341,12 +393,8 @@
 			baned: 'Заблокирован',
 			waiting: 'Ожидает подтверждения регистрации',
 			// roles
-			// into Russian
 			admin: 'Администратор',
 			employee: 'Сотрудник',
-			// into English
-			'Администратор': 'admin',
-			'Сотрудник': 'employee',
 			// columns
 			fullname: 'ФИО',
 			email: 'Электронная почта',
@@ -440,6 +488,7 @@
 					null,
 					'\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0435 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0438:'
 				),
+				React.createElement(Notification, { notification: this.state.notification }),
 				users.length ? this.showUsers(users) : React.createElement(
 					'p',
 					null,
@@ -447,13 +496,18 @@
 				)
 			);
 		}
-	}, __webpack_require__(8)));
+	}, __webpack_require__(3)));
 
 	var App = React.createClass({
 		displayName: 'App',
 
 		render: function render() {
-			return React.createElement(_modalWindow2.default, null);
+			return React.createElement(
+				'div',
+				{ id: 'users-page' },
+				React.createElement(Registration, null),
+				React.createElement(Users, null)
+			);
 		}
 	});
 
@@ -990,380 +1044,6 @@
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	// const renderNotification = ({ notification, closeHandler }) => {
-	// 	const type = notification instanceof Error? 'danger' : 'info';
-	// 	const message = notification.message || notification;
-
-	// 	return (
-	// 		<div id={type} className={`alert alert-${type}`}>
-	// 			<a className="close" onClick={closeHandler}>×</a>
-	// 			<div dangerouslySetInnerHTML={{__html: message}}/>
-	// 		</div>
-	// 	)
-	// };
-
-	// const NotificationComponent = props => (
-	// 	props.notification? renderNotification(props) : null
-	// );
-
-
-	// export default NotificationComponent;
-
-
-	var Notification = function (_React$Component) {
-		_inherits(Notification, _React$Component);
-
-		function Notification() {
-			_classCallCheck(this, Notification);
-
-			return _possibleConstructorReturn(this, (Notification.__proto__ || Object.getPrototypeOf(Notification)).apply(this, arguments));
-		}
-
-		_createClass(Notification, [{
-			key: 'renderNotification',
-			value: function renderNotification(_ref) {
-				var notification = _ref.notification;
-				var closeHandler = _ref.closeHandler;
-
-				var type = notification instanceof Error ? 'danger' : 'info';
-				var message = notification.message || notification;
-
-				return React.createElement(
-					'div',
-					{ id: type, className: 'alert alert-' + type },
-					React.createElement(
-						'a',
-						{ className: 'close', onClick: closeHandler },
-						'\xD7'
-					),
-					React.createElement('div', { dangerouslySetInnerHTML: { __html: message } })
-				);
-			}
-		}, {
-			key: 'render',
-			value: function render() {
-				var props = this.props;
-				console.log(props.closeHandler);
-				return props.notification ? this.renderNotification(props) : null;
-			}
-		}]);
-
-		return Notification;
-	}(React.Component);
-
-	exports.default = Notification;
-		;
-
-/***/ },
-/* 4 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var Input = function (_React$Component) {
-		_inherits(Input, _React$Component);
-
-		function Input() {
-			_classCallCheck(this, Input);
-
-			return _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).apply(this, arguments));
-		}
-
-		_createClass(Input, [{
-			key: "render",
-			value: function render() {
-				var _props = this.props;
-				var className = _props.className;
-				var id = _props.id;
-				var placeholder = _props.placeholder;
-				var value = _props.value;
-				var changeStateHandler = _props.changeStateHandler;
-				var helpBlock = _props.helpBlock;
-
-
-				return React.createElement(
-					"div",
-					{ className: className },
-					React.createElement("input", {
-						id: id,
-						type: "text",
-						placeholder: placeholder,
-						className: "form-control",
-						value: value,
-						onChange: changeStateHandler
-					}),
-					helpBlock ? React.createElement(
-						"span",
-						{ className: "help-block" },
-						helpBlock
-					) : null
-				);
-			}
-		}]);
-
-		return Input;
-	}(React.Component);
-
-		exports.default = Input;
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _dictionary = __webpack_require__(6);
-
-	var _dictionary2 = _interopRequireDefault(_dictionary);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var Select = function (_React$Component) {
-		_inherits(Select, _React$Component);
-
-		function Select() {
-			_classCallCheck(this, Select);
-
-			return _possibleConstructorReturn(this, (Select.__proto__ || Object.getPrototypeOf(Select)).apply(this, arguments));
-		}
-
-		_createClass(Select, [{
-			key: "renderOptions",
-			value: function renderOptions(options) {
-				return options.map(function (opt) {
-					return React.createElement(
-						"option",
-						null,
-						_dictionary2.default.intoRus(opt)
-					);
-				});
-			}
-		}, {
-			key: "render",
-			value: function render() {
-				var _props = this.props;
-				var className = _props.className;
-				var id = _props.id;
-				var changeStateHandler = _props.changeStateHandler;
-				var options = _props.options;
-				var helpBlock = _props.helpBlock;
-
-
-				return React.createElement(
-					"div",
-					{ className: "col-sm-4 registration" },
-					React.createElement(
-						"select",
-						{
-							id: id,
-							className: "form-control",
-							onChange: changeStateHandler },
-						this.renderOptions(options)
-					),
-					helpBlock ? React.createElement(
-						"span",
-						{ className: "help-block" },
-						helpBlock
-					) : null
-				);
-			}
-		}]);
-
-		return Select;
-	}(React.Component);
-
-		exports.default = Select;
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var Translate = function () {
-		function Translate() {
-			_classCallCheck(this, Translate);
-
-			// translate into Russian
-			this.engToRus = {
-				// statuses
-				active: 'Активен',
-				baned: 'Заблокирован',
-				waiting: 'Ожидает подтверждения регистрации',
-				// roles
-				admin: 'Администратор',
-				employee: 'Сотрудник',
-				// columns
-				fullname: 'ФИО',
-				email: 'Электронная почта',
-				role: 'Роль',
-				status: 'Статус',
-				status_changed: 'Статус изменен',
-				operations: ''
-			};
-
-			// translate into English
-			this.rusToEng = {
-				// roles
-				'Администратор': 'admin',
-				'Сотрудник': 'employee'
-			};
-		}
-
-		_createClass(Translate, [{
-			key: 'intoRus',
-			value: function intoRus(naming) {
-				return this.engToRus[naming];
-			}
-		}, {
-			key: 'intoEng',
-			value: function intoEng(naming) {
-				return this.rusToEng[naming];
-			}
-		}]);
-
-		return Translate;
-	}();
-
-	var translate = new Translate();
-	exports.default = translate;
-		// export default new Translate();
-
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var ModalWindow = function (_React$Component) {
-		_inherits(ModalWindow, _React$Component);
-
-		function ModalWindow() {
-			_classCallCheck(this, ModalWindow);
-
-			return _possibleConstructorReturn(this, (ModalWindow.__proto__ || Object.getPrototypeOf(ModalWindow)).apply(this, arguments));
-		}
-
-		_createClass(ModalWindow, [{
-			key: "render",
-			value: function render() {
-				return React.createElement(
-					"div",
-					{ "class": "modal fade container", id: "myModal", role: "dialog" },
-					React.createElement(
-						"div",
-						{ "class": "modal-dialog modal-lg" },
-						React.createElement(
-							"div",
-							{ "class": "modal-content" },
-							React.createElement(
-								"div",
-								{ "class": "modal-header" },
-								React.createElement(
-									"button",
-									{ type: "button", "class": "close", "data-dismiss": "modal" },
-									"\xD7"
-								),
-								React.createElement(
-									"h4",
-									{ "class": "modal-title" },
-									"Modal Header"
-								)
-							),
-							React.createElement(
-								"div",
-								{ "class": "modal-body" },
-								React.createElement(
-									"p",
-									null,
-									"This is a large modal."
-								)
-							),
-							React.createElement(
-								"div",
-								{ "class": "modal-footer" },
-								React.createElement(
-									"button",
-									{ type: "button", "class": "btn btn-default", "data-dismiss": "modal" },
-									"Close"
-								)
-							)
-						)
-					)
-				);
-			}
-		}]);
-
-		return ModalWindow;
-	}(React.Component);
-	//<h2>Large Modal</h2>
-	//<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Open Large Modal</button>
-
-
-		exports.default = ModalWindow;
-
-/***/ },
-/* 8 */
 /***/ function(module, exports) {
 
 	'use strict';

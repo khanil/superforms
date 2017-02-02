@@ -54,7 +54,6 @@ module.exports = function (app) {
 	app.get('/api/users/signup', loadData, checkAuth, isAdmin, users.sendSignUpSalt)
 	app.post('/api/users/signup', loadData, checkAuth, isAdmin, users.signUp)
 
-
 	app.post('/api/setdefaulttab', loadData, checkAuth, forms.setDefaultTab)
 	app.get('/api/forms', loadData, checkAuth, forms.getAllForUser);//get all forms
 	app.get('/api/journal', loadData, checkAuth, forms.getAllForOrg);//get all forms  

@@ -24,12 +24,10 @@ exports.save = function(req, res, next) {
 
 exports.sendResponsePage = function(req, res, next) {
 	res.render('response', {
-		isAdmin: req.user.role === 'admin', 
-		config: {
-			user_id: req.params.user_id,
-			form_id: req.params.id, 
-			response_id: req.params.response_id,
-		}
+		isAdmin: req.user.role === 'admin',
+		user_id: req.params.user_id,
+		form_id: req.params.id, 
+		response_id: req.params.response_id
 	});
 }
 
