@@ -13,6 +13,8 @@ var models = [
 
 // load all required data to 'req' object
 module.exports = function(req, res, next) {
+	console.log(req.body);
+
 	if(req.session.user) {
 		req.params.user_id = req.session.user;
 	}
