@@ -1,50 +1,55 @@
+var config = require('../config');
 var forms = require('../models/form');
 var responses = require('../models/response');
 var HttpError = require('../error').HttpError;
 var excelExport = require('../libs/excel-export');
 
-var path = require('path');
+const subscribers = {};
 
-exports.save = function(req, res, next) {
-	var interview = req.body;
-	
-	responses.add(interview, req.form.id)
+exports.save = (req, res, next) => {
+	// it works while Content-Type is text/plain
+	if(typeof(req.body) !== 'string') {
+		throw new HttpError(400, 'Во время отправки ответов произошла ошибка. '
+			+ 'Возможно, Вы используете устаревшую версию бразера. '
+			+ 'Для корректной работы приложения его необходимо обновить. '
+			+ 'Если же версия браузера актуальна, пожалуйста, свяжитесь с техподдержкой.');
+	}
+	responses.add(req.body, req.form.id)
 		.then(result => {
-			if(result) {
-				if(!req.form.allowrefill) {
-					req.session.completedForms = req.session.completedForms || [];
-					req.session.completedForms.push(req.params.id);
-				}
-				res.sendStatus(200);
+			if(!req.form.allowrefill) {
+				req.session.completedForms = req.session.completedForms || [];
+				req.session.completedForms.push(req.params.id);
 			}
+			res.sendStatus(200);
+			sendNewResponses(req.form.id, [ result ]);
 		})
-		['catch'](next);
+		.catch(next);
 };
 
 
-exports.sendResponsePage = function(req, res, next) {
+exports.sendResponsePage = (req, res, next) => {
 	res.render('response', {
-		isAdmin: req.user.role === 'admin',
+		isAdmin: req.user.role === 'admin', 
 		user_id: req.params.user_id,
 		form_id: req.params.id, 
-		response_id: req.params.response_id
+		response_id: req.params.response_id,
 	});
 }
 
 
-exports.sendResponsesPage = function(req, res, next) {
+exports.sendResponsesPage = (req, res, next) => {
 	res.render('responses', {
 		isAdmin: req.user.role === 'admin',
 		config: {
 			user_id: req.params.user_id,
 			form_id: req.params.id, 
-			timeout: 3000000
+			timeout: config.get('pageReloadTimeout:responses') 
 		}
 	});
 };
 
 
-exports.getXlsx = function (req, res, next) {
+exports.getXlsx = (req, res, next) => {
 	const form = req.form.template;
 	return responses.getResponsesList(req.form.id)
 		.then(responsesList => {
@@ -90,7 +95,7 @@ function generateBody(questions, responses) {
 		rows = responses.map(response => [ response.received ]);
 		body = { rows, colsOpts },
 		delCount = 0;
-
+	console.log(rows)
 	for(let col = 0; col < questions.length; col++) {
 		if(questions[col]._type === 'question') {
 			if(questions[col].multiple === 'true') {
@@ -160,17 +165,15 @@ function floatToNumber(cellData) {
 
 
 
-exports.getOne = function(req, res, next) {
+exports.getOne = (req, res, next) => {
 	res.send({
 		form: forms.modifyForClient(req.form),
 		response: responses.modifyForClient(req.response)
 	});
 }
 
-const fs = require('fs')
 
-
-exports.getAll = function(req, res, next) {
+exports.getAll = (req, res, next) => {
 	responses.findAll(req.form.id)
 		.then(foundResponses => {
 			for(i = 0; i < foundResponses.length; i++) {
@@ -180,3 +183,49 @@ exports.getAll = function(req, res, next) {
 		})
 		['catch'](next);
 }
+
+
+exports.updateResponses = (req, res, next) => {
+	if(!req.form)
+		return next(new HttpError(404, 'Запрашиваемая форма не найдена.'));
+	
+	responses.findAll(req.form.id)
+		.then(foundResponses => {
+			const diff = foundResponses.length - req.params.amount;
+			if(diff) {
+				foundResponses.length = diff;
+				console.log(foundResponses);
+				res.json(foundResponses);
+			} else {
+				subscribe(req, res);
+			}
+		})
+		.catch(next);
+}
+
+
+function subscribe(req, res) {
+	res.setHeader("Cache-Control", "no-cache, must-revalidate");
+	req.timestamp = Date.now();
+	console.log('add subscriber\nform: ', req.form.id, '\nreq: ', req.timestamp);
+	if(subscribers[req.form.id]) {
+		subscribers[req.form.id][req.timestamp] = res;
+	} else {
+		subscribers[req.form.id] = { [req.timestamp]: res };
+	}
+
+	req.on('close', function() {
+		delete subscribers[req.form.id][req.timestamp];
+		console.log('delete subscriber\nform: ', req.form.id, '\nreq: ', req.timestamp);
+	});
+}
+
+function sendNewResponses(formID, newResponse) {
+	console.log(subscribers)
+	const onForm = subscribers[formID];
+	delete subscribers[formID];
+	for(var key in onForm) {
+		onForm[key].json(newResponse);
+	}
+}
+

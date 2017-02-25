@@ -4,20 +4,23 @@ var path = require('path');
 
 module.exports = new (winston.Logger)({
 	levels: {
-		'INFO': 0,
-		'WARN': 1,
-		'ERROR': 2
+		'info': 2,
+		'warn': 1,
+		'error': 0
 	},
 	colors: { 
-		'INFO': 'green',
-		'WARN': 'yellow',
-		'ERROR': 'red' 
+		'info': 'green',
+		'warn': 'yellow',
+		'error': 'red' 
 	},
 	transports: [
-		new (winston.transports.Console)({ level:'ERROR', colorize: true} ),
+		new (winston.transports.Console)({
+			level:'info', 
+			colorize: true, 
+		}),
 		new (require('winston-daily-rotate-file'))({
-			timestamp: () => new Date(), 
-			level: 'ERROR', 
+			// timestamp: () => new Date(), 
+			level: 'info', 
 			filename: path.join('logs', 'errors.log'), 
 			datePattern: 'yy-MM-dd' 
 		})

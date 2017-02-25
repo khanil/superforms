@@ -22,6 +22,9 @@
 		"response" : { "salt" : "The alphabet is also", "length" : 10 },
 		"report" : { "salt" : "shuffled based on salt.", "length" : 11 }
 	},
+	"pageReloadTimeout" : {
+		"responses": 30000
+	},
 	"nodemailer" : {
 			"host": "smtp.mosk.spb.ru",
 			"port": 465,

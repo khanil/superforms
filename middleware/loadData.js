@@ -26,17 +26,10 @@ module.exports = function(req, res, next) {
 			})
 		) // write found results into 'req' object with corresponding model names
 		.then(result => {
-			let requiredDataString = 'REQUIRED DATA: ';
-			
 			requiredModels.forEach( (model, i) => {
 				let modelName = model.constructor.name.toLowerCase()
 				req[modelName] = result[i];
-				requiredDataString += modelName + ': ' + (result[i]? 
-					result[i].id : 'NOT FOUND'
-				) + '; ';
 			})
-
-			logger.INFO(requiredDataString);
 			next();
 		})
 		['catch'](next);

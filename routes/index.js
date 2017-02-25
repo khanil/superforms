@@ -25,9 +25,8 @@ module.exports = function (app) {
 
 	app.get('/', loadData, require('./main.js').get);
 	
-	app.get('/forms-new', loadData, checkAuth, forms.sendFormsPage)
 	app.get('/forms', loadData, checkAuth, forms.sendFormsPage)
-	app.get('/journal', loadData, checkAuth, forms.sendJournalPage);
+	// app.get('/journal', loadData, checkAuth, forms.sendJournalPage);
 	app.get('/forms/new', loadData, checkAuth, forms.sendGeneratorPage);// get form's generator page
 	app.get('/forms/:id/edit', loadData, checkAuth, checkFormByAuthor, forms.sendEditPage);// send form's edit page for author
 	app.get('/forms/:id/preview', loadData, checkAuth, checkFormByOrg, forms.sendPreviewPage);
@@ -54,6 +53,7 @@ module.exports = function (app) {
 	app.get('/api/users/signup', loadData, checkAuth, isAdmin, users.sendSignUpSalt)
 	app.post('/api/users/signup', loadData, checkAuth, isAdmin, users.signUp)
 
+
 	app.post('/api/setdefaulttab', loadData, checkAuth, forms.setDefaultTab)
 	app.get('/api/forms', loadData, checkAuth, forms.getAllForUser);//get all forms
 	app.get('/api/journal', loadData, checkAuth, forms.getAllForOrg);//get all forms  
@@ -71,4 +71,5 @@ module.exports = function (app) {
 		checkFormByOrg, checkResponseByForm, responses.getOne);//get one response by id 
 	app.post('/api/forms/:id/responses', loadData, permissionToFill, responses.save);//save interview (filled form) 
 
+	app.get('/api/forms/:id/updateResponses/:amount', loadData, checkAuth, responses.updateResponses);
 }
