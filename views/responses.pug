@@ -11,7 +11,7 @@ body
 			div.triangle.triangle-right
 			include includes/signout
 
-	div#root.wide.container
-	script#config(type="application/json").
-		!{JSON.stringify(config)}
-	script(type="text/javascript", src="/scripts/responses.js")
+	div#root.wide.container!= html
+	script(type='text/javascript').
+		window.__PRELOADED_STATE__ = !{JSON.stringify(preloadedState)}
+	script(type="text/javascript", src="/scripts/report.js")

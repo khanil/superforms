@@ -37,15 +37,31 @@ exports.sendResponsePage = (req, res, next) => {
 }
 
 
-exports.sendResponsesPage = (req, res, next) => {
-	res.render('responses', {
-		isAdmin: req.user.role === 'admin',
-		config: {
-			user_id: req.params.user_id,
-			form_id: req.params.id, 
-			timeout: config.get('pageReloadTimeout:responses') 
-		}
-	});
+import renderReactHTML from '../libs/renderReactHTML';
+
+exports.sendResponsesPage = function(req, res, next) {
+	responses.findAll(req.form.id)
+		.then(foundResponses => {
+			for(let i = 0; i < foundResponses.length; i++) {
+				responses.modifyForClient(foundResponses[i]);
+			}
+			
+			const preloadedState = {
+				form: forms.modifyForClient(req.form),
+				responses: {
+					entities: foundResponses,
+					fetchedLast: Date.now()
+				}
+			};
+			
+			const html = renderReactHTML(preloadedState);
+
+			res.render('responses', {
+				html,
+				preloadedState
+			});
+		})
+		['catch'](next);
 };
 
 
@@ -75,7 +91,7 @@ function generateHeader(form, responsesList) {
 
 	for(let i = 0; i < items.length; i++) {
 		if(items[i]._type === 'delimeter') {
-			newSection = { title: items[i].title, columns: [] };
+			let newSection = { title: items[i].title, columns: [] };
 			columns.push(newSection);
 			currSection = newSection.columns;
 		} else {
@@ -92,7 +108,7 @@ function generateHeader(form, responsesList) {
 
 function generateBody(questions, responses) {
 	let colsOpts = [{ type: 'datetime' }], // type and cell data handler function of each column
-		rows = responses.map(response => [ response.received ]);
+		rows = responses.map(response => [ response.received ]),
 		body = { rows, colsOpts },
 		delCount = 0;
 	console.log(rows)
@@ -176,7 +192,7 @@ exports.getOne = (req, res, next) => {
 exports.getAll = (req, res, next) => {
 	responses.findAll(req.form.id)
 		.then(foundResponses => {
-			for(i = 0; i < foundResponses.length; i++) {
+			for(let i = 0; i < foundResponses.length; i++) {
 				responses.modifyForClient(foundResponses[i]);
 			}
 			res.json(foundResponses);

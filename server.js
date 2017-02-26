@@ -43,6 +43,6 @@ app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(errorHandler);
 
 app.listen(config.get('port'), function () {
-  logger.log('INFO', 'Express server is listening on port ' + config.get('port'));
+  logger.info('Express server is listening on port ' + config.get('port'));
 });
 

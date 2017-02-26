@@ -45,29 +45,29 @@ exports.errorHandler = function (err, req, res, send) {
 	switch(err.constructor) {
 		// HTTP error
 		case HttpError:
-			level = 'WARN';
+			level = 'warn';
 			err = { httpResponse: err }
 			break;
 		// Databse error
 		case DatabaseError:
 			if(err.constraint === 'users_email_key') {
-				level = 'WARN'
+				level = 'warn'
 				err.httpResponse = new HttpError(422, 'Пользователь с данным адресом электронной почты уже существует.')
 			}
 			break;
 		// SMTP protocol error (email sending failed)
 		case SmtpError:
 			if(err.code === 'ECONNECTION') {
-				level = 'ERROR'
+				level = 'error'
 				err.httpResponse = new HttpError(500, 'Почтовая рассылка недоступна в данный момент.')
 			} else if(err.code === 'EENVELOPE' || err.code === 'ENOTFOUND' || err.code === 'EMESSAGE') {
-					level = 'WARN'
+					level = 'warn'
 					err.httpResponse = new HttpError(422, 'Некорректный адрес электронной почты.')
 			}
 			break;
 	}
 
-	logger.log(level || 'ERROR', err, requestData);
+	logger.log(level || 'error', err, requestData);
 	res.sendHttpError(err.httpResponse || new HttpError(500, 'Неизвестная ошибка сервера'));
 }
 

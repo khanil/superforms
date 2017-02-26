@@ -114,8 +114,6 @@ exports.execute = function(config) {
 		base64: false,
 		compression: "DEFLATE"
 	});
-	delete shareStrings;
-	delete xlsx;
 	return results;
 }
 

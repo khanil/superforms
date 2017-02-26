@@ -15,20 +15,7 @@ body
 		a.btn.btn-success(href="/forms/new") Создать форму 
 	div#root.wide.container
 	script#config(type="application/json").
-		{
-			"getUrl": "/api/forms",
-			"postUrl": "/api/answers/",
-			"copyUrl": "/api/forms/id/copy",
-			"previewUrl": "/forms/id/preview",
-			"deleteUrl": "/api/forms/id/delete",
-			"editUrl": "/forms/id/edit",
-			"reportUrl": "/forms/id/responses",
-			"sendUrl": "/api/forms/id/send",
-			"statusUrl": "/api/forms/id/status",
-			"getAllUrl": "/api/allforms",
-			"setDefaultTab": "/api/setdefaulttab",
-			"tab": "#{defaultTab}"
-		}
+		!{JSON.stringify(config)}
 	- if (unstable)
 		script(type="text/javascript", src="/scripts/forms-new.js")
 	-else

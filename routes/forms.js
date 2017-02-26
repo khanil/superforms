@@ -9,9 +9,13 @@ Sending of HTML pages
 */
 
 exports.sendFormsPage = (req, res) => {
+	const { name, surname, patronymic } = req.user;
 	res.render('forms', { 
 		isAdmin: users.isAdmin(req.user), 
-		defaultTab: req.session.defaultTab
+		config: {
+			user: { id: req.params.user_id, name, surname, patronymic },
+			defaultTab: req.session.defaultTab
+		}
 	})
 }
 
