@@ -23,7 +23,7 @@ function Response() {
 	)
 
 	this.add = (answers, form_id) => db.query(
-		"INSERT INTO responses(list, form_id) values($1, $2) RETURNING id;", 
+		"INSERT INTO responses(list, form_id) values($1, $2) RETURNING *;", 
 		[answers, form_id]
 	)
 
