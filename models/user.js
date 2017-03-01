@@ -1,8 +1,11 @@
+
+
 function User() {
 	var config = require('../config');
 	var CryptoJS = require('../libs/cryptoJS')
 	var db = require('./db.js');
 	const {Object} = require('../libs/extraMethods');
+	var HttpError = require('../error').HttpError;
 	var Hashids = require("hashids");
 	var hashids = {
 		user : new Hashids(config.get('hash:user:salt'), config.get('hash:user:length')),

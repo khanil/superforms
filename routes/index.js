@@ -53,6 +53,7 @@ module.exports = function (app) {
 	app.get('/api/users', loadData, checkAuth, isAdmin, users.getAll);
 	app.get('/api/users/signup', loadData, checkAuth, isAdmin, users.sendSignUpSalt)
 	app.post('/api/users/signup', loadData, checkAuth, isAdmin, users.signUp)
+	app.get('/api/users/:email/:flag/:value', loadData, checkAuth, isAdmin, users.changeUserOptions);
 
 	app.post('/api/setdefaulttab', loadData, checkAuth, forms.setDefaultTab)
 	app.get('/api/forms', loadData, checkAuth, forms.getAllForUser);//get all forms

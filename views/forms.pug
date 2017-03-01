@@ -16,7 +16,4 @@ body
 	div#root.wide.container
 	script#config(type="application/json").
 		!{JSON.stringify(config)}
-	- if (unstable)
-		script(type="text/javascript", src="/scripts/forms-new.js")
-	-else
-		script(type="text/javascript", src="/scripts/main.js")
+	script(type="text/javascript", src="/scripts/main.js")

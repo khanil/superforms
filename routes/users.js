@@ -74,33 +74,49 @@ exports.signUp = function (req, res, next) {
 		.then(newUser => {
 			user.id = newUser.id; // write id to the enclosing object 'user'
 			return users.addRole(user.id, user.role)} )
-		.then(() => users.changeStatus(user.id)) // add status into db
+		.then(() => users.changeStatus(user.id, 'active')) // add status into db
 		//  
-		.then(() => users.addRegConfirm(user.id))
-		.then(registration => mailer.sendRegConfirm(user, registration.token)) // send an email for registry confirmation
+		// .then(() => users.addRegConfirm(user.id))
+		// .then(registration => mailer.sendRegConfirm(user, registration.token)) // send an email for registry confirmation
 		.then(() => res.send(users.encode(user.id))) // send encoded id
-		.catch(err => {
-			if(err instanceof SmtpError) {
-				users.delete(user.id)	
-			}
-			throw err
-		})
+		// .catch(err => {
+		// 	if(err instanceof SmtpError) {
+		// 		users.delete(user.id);
+		// 	}
+		// 	throw err
+		// })
 		.catch(next)
 };
 
-exports.changePassword = (req, res, next) => {
-	let id = req.body
-	users.findOne(id)
-		.then(users.changePassword)
-		.then()
-		.catch()
+
+exports.changeUserOptions = (req, res, next) => {
+	const { email, flag, value } = req.params;
+	users.findOne(email)
+		.then(foundUser => {
+			if(foundUser) {
+				switch(flag) {
+					case 'status':
+						if(!~['active', 'banned'].indexOf(value)) {
+							throw new HttpError(404, 'incorrect value') 
+						}
+						return users.changeStatus(foundUser.id, value);
+					case 'password':
+						return users.changePassword({ id: foundUser.id, password: value })
+					default:
+						throw new HttpError(404, 'incorrect action')
+				}
+			} else {
+				throw new HttpError(404, 'Пользователь с таким email не найден.')
+			}
+		})
+		.then(() => {
+			res.render('message', {
+				title: 'Успех!',
+				html: `Настройки пользователя <strong>${email}</strong> были изменены.`,
+			})
+		})
+		.catch(next);
 }
-// // When email sending doesn't work
-// if(err.code === 'ECONNECTION') {
-// 	return users.changeStatus(user.id, 'active')
-// 		.then(data => JSON.stringify({ id: users.encode(user.id), password: user.password }))
-// 		.then(data => res.send(users.encrypt(data, info.temporarySalt)))
-// }
 
 
 exports.confirmRegistration = function (req, res, next) {
