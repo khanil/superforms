@@ -141,7 +141,7 @@ const exportOpts = {
 
 function stringToNumber(cellData, cellOpts) {
 	if(cellData === '' || typeof cellData !== 'string') return '';
-	if(!~cellData.search(/[^\d,.]/)) {
+	if(!~cellData.search(/[^\d,.-]/)) {
 		const num = +cellData || +cellData.replace(/,/, '.');
 		if(!isNaN(num)) {
 			cellOpts.type = 'number';

@@ -14,7 +14,7 @@ exports.sendFormsPage = (req, res) => {
 		isAdmin: users.isAdmin(req.user), 
 		config: {
 			user: { id: req.params.user_id, name, surname, patronymic },
-			defaultTab: req.session.defaultTab
+			defaultTab: req.session.defaultTab || 'МОИ ФОРМЫ'
 		}
 	})
 }
