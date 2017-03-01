@@ -37,7 +37,7 @@ exports.sendResponsePage = (req, res, next) => {
 }
 
 
-import renderReactHTML from '../libs/renderReactHTML';
+import renderReactHTML from '../libs/renderResponsesApp';
 
 exports.sendResponsesPage = function(req, res, next) {
 	responses.findAll(req.form.id)
