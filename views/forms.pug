@@ -13,10 +13,7 @@ body
 	
 	div.wide.container.create-form
 		a.btn.btn-success(href="/forms/new") Создать форму 
-	div#root.wide.container
-	script#config(type="application/json").
-		!{JSON.stringify(config)}
-	- if (unstable)
-		script(type="text/javascript", src="/scripts/forms-new.js")
-	-else
-		script(type="text/javascript", src="/scripts/main.js")
+	div#root.wide.container!= html
+	script(type='text/javascript').
+		window.__PRELOADED_STATE__ = !{JSON.stringify(preloadedState)}
+	script(type="text/javascript", src="/scripts/main.js")

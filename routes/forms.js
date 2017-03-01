@@ -8,17 +8,25 @@ var users = require('../models/user');
 Sending of HTML pages
 */
 
-exports.sendFormsPage = (req, res) => {
-	const { name, surname, patronymic } = req.user;
-	res.render('forms', { 
-		isAdmin: users.isAdmin(req.user), 
-		config: {
-			user: { id: req.params.user_id, name, surname, patronymic },
-			defaultTab: req.session.defaultTab
-		}
-	})
-}
+import { renderReactHTML, normalizeState } from '../libs/renderFormsListApp';
 
+exports.sendFormsPage = (req, res, next) => {
+	forms.findAllForOrg(req.user.org_id)
+		.then(foundForms => {
+			for(let i = 0; i < foundForms.length; i++) {
+					forms.modifyForJournal(foundForms[i])
+				}
+			
+			const preloadedState = normalizeState(foundForms);
+			const html = renderReactHTML(preloadedState);
+
+			res.render('forms', {
+				html,
+				preloadedState
+			});
+		})
+		['catch'](next);
+}
 
 exports.sendJournalPage = (req, res) => {
 	res.render('journal', { isAdmin: users.isAdmin(req.user) });
