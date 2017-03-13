@@ -97,8 +97,31 @@ exports.signUp = function (req, res, next) {
 };
 
 
+exports.delete = (req, res, next) => {
+	const id = req.params.id
+
+	Promise.resolve(users.decode(id))
+		.then(decoded_id => decoded_id?
+			decoded_id : 
+			users.findOne(id).then(usr => usr.id)
+		)
+		.catch(err => {
+			throw new HttpError(404, 'Данный пользователь не найден.')
+		})
+		.then(id => users.delete(id))
+		.then(() => {
+			res.render('message', {
+				title: 'Успех!',
+				html: `Пользователь удалён.`,
+			})
+		})
+		.catch(next)
+}
+
+
 exports.changeUserOptions = (req, res, next) => {
 	const { email, flag, value } = req.params;
+	
 	users.findOne(email)
 		.then(foundUser => {
 			if(foundUser) {
@@ -109,7 +132,7 @@ exports.changeUserOptions = (req, res, next) => {
 						}
 						return users.changeStatus(foundUser.id, value);
 					case 'password':
-						return users.changePassword({ id: foundUser.id, password: value })
+						return users.changePassword({ id: foundUser.id, password: value });
 					default:
 						throw new HttpError(404, 'incorrect action')
 				}
