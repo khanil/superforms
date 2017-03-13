@@ -13,17 +13,17 @@ exports.sendSignInPage = (req, res) => {
 exports.sendSignInSalt = (req, res, next) => {
 	users.findOne(req.body)
 		.then(foundUser => {
-			var options = { temporarySalt: users.genSalt() }
+			var options = { tempSalt: users.genSalt() }
 			if(foundUser) {
 				options.email = foundUser.email
 				req.session.signin = options
 				let salt = users.getSalt(foundUser.hash)
-				res.send(salt + '$' + options.temporarySalt)
+				res.send(salt + '$' + options.tempSalt)
 				// there is only 15 seconds to authenticate
 				setTimeout(() => delete(req.session.signin), 15000)
 			} else {
 				// method stub
-				res.send(users.genSalt() + '$' + options.temporarySalt)
+				res.send(users.genSalt() + '$' + options.tempSalt)
 			}
 		})
 		.catch(next);
@@ -39,7 +39,7 @@ exports.signIn = function (req, res, next) {
 	users.findOne(user.email)
 		.then(foundUser => {
 			var err;
-			if(foundUser && users.compare(user.hash, foundUser.hash, user.temporarySalt)) {
+			if(foundUser && users.compare(user.hash, foundUser.hash, user.tempSalt)) {
 				switch(foundUser.status) {
 					case 'active': 
 						req.session.user = users.encode(foundUser.id);
@@ -56,9 +56,9 @@ exports.signIn = function (req, res, next) {
 
 
 exports.sendSignUpSalt = (req, res, next) => {
-	var options = {	temporarySalt: users.genSalt() }
+	var options = {	tempSalt: users.genSalt() }
 	req.session.signup = options;
-	res.send(options.temporarySalt)
+	res.send(options.tempSalt)
 	setTimeout(() => delete(req.session.signup), 15000)
 }
 
@@ -68,17 +68,25 @@ exports.signUp = function (req, res, next) {
 
 	delete(req.session.signup)
 
-	Promise.resolve(users.decrypt(req.body, info.temporarySalt))
+	Promise.resolve(users.decrypt(req.body, info.tempSalt))
 		.then(newUser => user = JSON.parse(newUser))
 		.then(users.add) // add the user into db
 		.then(newUser => {
 			user.id = newUser.id; // write id to the enclosing object 'user'
+			user.status = 'active';
 			return users.addRole(user.id, user.role)} )
-		.then(() => users.changeStatus(user.id, 'active')) // add status into db
+		.then(() => users.changeStatus(user.id, user.status)) // add status into db
 		//  
 		// .then(() => users.addRegConfirm(user.id))
 		// .then(registration => mailer.sendRegConfirm(user, registration.token)) // send an email for registry confirmation
-		.then(() => res.send(users.encode(user.id))) // send encoded id
+		.then(() => {
+			const data = JSON.stringify({
+				id: users.encode(user.id),
+				password: user.password,
+				status: user.status
+			})
+			res.send(users.encrypt(data, info.tempSalt))
+		})
 		// .catch(err => {
 		// 	if(err instanceof SmtpError) {
 		// 		users.delete(user.id);

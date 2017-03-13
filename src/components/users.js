@@ -3,7 +3,7 @@ var sendRequest = require('./xhr')
 import Notification from './notification'
 import Input from './input'
 import Select from './select'
-import {intoRus, intoEng} from './dictionary'
+import translate from './dictionary'
 var eventEmitter = new EventEmitter();
 import ModalWindow from './modalWindow'
 
@@ -20,6 +20,14 @@ class Registration extends React.Component {
 			name: value => value? '' : 'Введите имя',
 			surname: value => value? '' : 'Введите фамилию', 
 			patronymic: () => ''
+		}
+
+		this.getValue = {
+			email: () => this.state.user.email.value, 
+			name: () => this.state.user.name.value,
+			surname: () => this.state.user.surname.value, 
+			patronymic: () => this.state.user.patronymic.value,
+			role: user => this.state.user.role
 		}
 
 		this.roles = ['admin', 'employee'];
@@ -58,7 +66,7 @@ class Registration extends React.Component {
 
 	changeSelectStateHandler(event) {
 		var input = event.target;
-		const newValue = this.intoEng[input.value];
+		const newValue = translate.intoEng(input.value);
 
 		this.setState({ 
 			user: Object.assign({}, this.state.user, { [input.id]: newValue })
@@ -67,9 +75,9 @@ class Registration extends React.Component {
 
 
 	findInputErrors() {
-		const errors = this.state.errors
+		const user = this.state.user
 		for(let key in user) {
-			if(user[key].requiredToFill && user[key].err)
+			if(user[key].requiredToFill && user[key] || user[key].err)
 				return true
 		}
 		return false
@@ -81,30 +89,40 @@ class Registration extends React.Component {
 	}
 
 
+	handleResponseData(data, user) {
+		Object.assign(user, data, { status_changed: new Date() })
+		
+		const message = `Пользователь <b>${user.surname} ${user.name} 
+			${user.patronymic || ''}</b> успешно зарегистрирован.
+			<br><b>email</b>: ${user.email}<br><b>пароль</b>: ${user.password}`
+		
+		delete user.password
+		eventEmitter.emit('addUser', user);
+
+		this.setState({ 
+			notification: message,
+			isFetching: false,
+			user: { email: '', name: '', surname: '', patronymic: '', role: this.state.user.role }
+		})
+	}
+
+
 	submitHandler() {
 		this.setState({ isFetching: true })
 		var salt, user = this.state.user
-		
+		for(let key in this.state.user) {
+			user[key] = this.getValue[key]();
+		}
+
 		sendRequest('GET', 'api/users/signup')
 			.then(response => {
 				salt = response;
 				var hash = CryptoJS.AES.encrypt(JSON.stringify(user), salt).toString()
 				return sendRequest('POST', '/api/users/signup', hash)
 			})
-			.then(id => {
-				Object.assign(user, { id: id, status: 'waiting', status_changed: new Date() })
-				eventEmitter.emit('addUser', user);
-
-				var message = `Пользователь ${user.surname} ${user.name} ${user.patronymic || ''}
-					успешно зарегистрирован. На ${user.email} отправлено письмо для подтверждения 
-					регистрации.`
-				
-				this.setState({ 
-					notification: message,
-					isFetching: false,
-					user: { email: '', name: '', surname: '', patronymic: '', role: this.state.user.role }
-				})
-			})
+			.then(data => CryptoJS.AES.decrypt(data, salt).toString(CryptoJS.enc.Utf8))
+			.then(JSON.parse)
+			.then(data => { this.handleResponseData(data, user) })
 			.catch(err => {
 				this.setState({ 
 					notification: err,
@@ -116,7 +134,6 @@ class Registration extends React.Component {
 
 	render() {
 		const {user, notification} = this.state;
-		// console.log(user)
 		return (
 			<div id="reg">
 				<h3>Регистрация пользователей:</h3>
@@ -163,9 +180,10 @@ class Registration extends React.Component {
 						className={"col-sm-4 form-group registration"}
 						id="role"
 						options={this.roles}
+						selected={user.role}
 						changeStateHandler={this.changeSelectStateHandler}
 					/>
-					{/*<div className="col-sm-3 registration" onClick={this.submitHandler}>
+					<div className="col-sm-3 registration" onClick={this.submitHandler}>
 						<button  
 							id="addUser" 
 							data-toggle="tooltip" 
@@ -175,7 +193,7 @@ class Registration extends React.Component {
 							{this.state.isFetching? (<span className="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>): null}
 							{this.state.isFetching? ' Проверка электронной почты...' : 'Добавить пользователя'}
 						</button>
-					</div>*/}
+					</div>
 				</div>
 			</div>
 		)
@@ -192,7 +210,7 @@ var Columns = React.createClass({
 			<tr>
 				{columns.map(column => 
 					(<th key={column.name} id={column.name}>
-						{this.props.rusNames[column.name]}
+						{translate.intoRus(column.name)}
 						{column.sortOrder ? 
 							(<span 
 								className={'pull-right glyphicon glyphicon-menu-' + (column.sortOrder === 'asc' ? 'up' : 'down')}
@@ -216,8 +234,8 @@ var User = React.createClass({
 			<tr>
 				<td>{ props.getSurnameAndInitials(user) }</td>
 				<td>{ user.email }</td>
-				<td>{ props.rusNames[user.role]? props.rusNames[user.role] : user.role }</td>
-				<td>{ props.rusNames[user.status] }</td>
+				<td>{ translate.intoRus(user.role) || user.role }</td>
+				<td>{ translate.intoRus(user.status) }</td>
 				<td>{ (new Date(user.status_changed)).toLocaleString("ru") }</td>
 				
 			</tr>
@@ -236,27 +254,6 @@ var User = React.createClass({
 
 
 var Users = React.createClass(Object.assign({
-	rusNames: {
-		// statuses
-		active: 'Активен',
-		baned: 'Заблокирован',
-		waiting: 'Ожидает подтверждения регистрации',
-		// roles
-		// into Russian
-		admin: 'Администратор',
-		employee: 'Сотрудник',
-		// into English
-		'Администратор': 'admin',
-		'Сотрудник': 'employee',
-		// columns
-		fullname: 'ФИО',
-		email: 'Электронная почта',
-		role: 'Роль',
-		status: 'Статус',
-		status_changed: 'Статус изменен',
-		operations: ''
-	},
-	
 
 	sort: function(event) {
 		var target = event.target.tagName === 'SPAN'? 
@@ -320,14 +317,13 @@ var Users = React.createClass(Object.assign({
 		return (
 			<table className="table table-bordered table-hover">
 				<thead onClick={this.sort}>
-					<Columns columns={this.state.columns} rusNames={this.rusNames}/>
+					<Columns columns={this.state.columns}/>
 				</thead>
 				<tbody>
 					{users.map(
 						user => (<User 
 							key={user.id} 
 							user={user} 
-							rusNames={this.rusNames} 
 							getSurnameAndInitials={this.getSurnameAndInitials}/>)
 					)}
 				</tbody>
@@ -353,7 +349,10 @@ var Users = React.createClass(Object.assign({
 var App = React.createClass({
 	render: function() {
 		return (
-			<ModalWindow />
+			<div id="users-page"> 
+				<Registration />
+				<Users />
+			</div>
 		)
 	}
 })

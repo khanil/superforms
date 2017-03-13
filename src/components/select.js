@@ -1,10 +1,15 @@
-import Translate from './dictionary'
+import translate from './dictionary'
 
 export default class Select extends React.Component {
-	renderOptions(options) {
-		return options.map(opt => (
-			<option>{Translate.intoRus(opt)}</option>
-		))
+	renderOptions(options, selected) {
+		let translatedOpt;
+		
+		return options.map(opt => {
+			translatedOpt = translate.intoRus(opt);
+			return opt === selected?
+				<option selected="selected">{translatedOpt}</option> :
+				<option>{translatedOpt}</option>
+			})
 	}
 
 	render() {
@@ -13,16 +18,17 @@ export default class Select extends React.Component {
 			id, 
 			changeStateHandler,
 			options,
-			helpBlock
+			helpBlock,
+			selected
 		} = this.props;
 
 		return (
 			<div className="col-sm-4 registration">
-				<select 
+				<select selected={selected}
 					id={id} 
 					className="form-control"
 					onChange={changeStateHandler}>
-					{this.renderOptions(options)}
+					{this.renderOptions(options, selected)}
 				</select>
 				{helpBlock? <span className="help-block">{helpBlock}</span> : null}
 			</div>

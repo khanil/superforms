@@ -35,6 +35,4 @@ class Translate {
 	}
 }
 
-const translate = new Translate();
-export default translate;
-// export default new Translate();
+export default new Translate();

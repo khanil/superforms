@@ -46,280 +46,274 @@
 
 	'use strict';
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _notification = __webpack_require__(3);
+
+	var _notification2 = _interopRequireDefault(_notification);
+
+	var _input = __webpack_require__(4);
+
+	var _input2 = _interopRequireDefault(_input);
+
+	var _select = __webpack_require__(5);
+
+	var _select2 = _interopRequireDefault(_select);
+
+	var _dictionary = __webpack_require__(6);
+
+	var _dictionary2 = _interopRequireDefault(_dictionary);
+
+	var _modalWindow = __webpack_require__(7);
+
+	var _modalWindow2 = _interopRequireDefault(_modalWindow);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 	var CryptoJS = __webpack_require__(2);
 	var sendRequest = __webpack_require__(1);
 
 	var eventEmitter = new EventEmitter();
 
-	var Notification = React.createClass({
-		displayName: 'Notification',
+	var Registration = function (_React$Component) {
+		_inherits(Registration, _React$Component);
 
-		close: function close(event) {
-			eventEmitter.emit('closeNotification');
-		},
+		function Registration() {
+			_classCallCheck(this, Registration);
 
-		shapeNotification: function shapeNotification(notification) {
-			var type, message;
-			if (notification instanceof Error) {
-				type = 'danger';
-				message = notification.message;
-			} else {
-				type = 'info';
-				message = notification;
-			}
-			return React.createElement(
-				'div',
-				{ id: type, className: 'alert alert-' + type },
-				React.createElement(
-					'a',
-					{ className: 'close', onClick: this.close },
-					'\xD7'
-				),
-				React.createElement(
-					'p',
-					null,
-					message
-				)
-			);
-		},
+			var _this = _possibleConstructorReturn(this, (Registration.__proto__ || Object.getPrototypeOf(Registration)).call(this));
 
-		render: function render() {
-			var notification = this.props.notification;
-			return notification ? this.shapeNotification(notification) : null;
-		}
-	});
+			_this.verify = {
+				email: function email(value) {
+					return value ? /@/.test(value) ? '' : 'Некорректный адрес электронной почты' : 'Введите адрес электронной почты';
+				},
+				name: function name(value) {
+					return value ? '' : 'Введите имя';
+				},
+				surname: function surname(value) {
+					return value ? '' : 'Введите фамилию';
+				},
+				patronymic: function patronymic() {
+					return '';
+				}
+			};
 
-	var Registration = React.createClass({
-		displayName: 'Registration',
+			_this.getValue = {
+				email: function email() {
+					return _this.state.user.email.value;
+				},
+				name: function name() {
+					return _this.state.user.name.value;
+				},
+				surname: function surname() {
+					return _this.state.user.surname.value;
+				},
+				patronymic: function patronymic() {
+					return _this.state.user.patronymic.value;
+				},
+				role: function role(user) {
+					return _this.state.user.role;
+				}
+			};
 
+			_this.roles = ['admin', 'employee'];
 
-		roles: {
-			'Сотрудник': 'employee',
-			'Администратор': 'admin'
-		},
-
-		verify: {
-			email: function email(value) {
-				return value ? /@/.test(value) ? '' : 'Некорректный адрес электронной почты' : 'Введите адрес электронной почты';
-			},
-			name: function name(value) {
-				return value ? '' : 'Введите имя';
-			},
-			surname: function surname(value) {
-				return value ? '' : 'Введите фамилию';
-			},
-			patronymic: function patronymic() {
-				return '';
-			}
-		},
-
-		getInitialState: function getInitialState() {
-			return {
-				user: { email: '', name: '', surname: '', patronymic: '', role: 'employee' },
-				errors: { email: '', name: '', surname: '', patronymic: '' },
+			_this.state = {
+				user: {
+					email: { value: '', requiredToFill: true, err: '' },
+					name: { value: '', requiredToFill: true, err: '' },
+					surname: { value: '', requiredToFill: true, err: '' },
+					patronymic: { value: '', requiredToFill: false, err: '' },
+					role: 'employee'
+				},
 				isFetching: false,
 				notification: null
 			};
-		},
 
-		changeState: function changeState(event) {
-			var input = event.target,
-			    newState,
-			    value;
-			if (input.id === 'role') {
-				value = this.roles[input.value];
-				newState = {
-					user: Object.assign(this.state.user, new this.UpdatedProp(input.id, value))
-				};
-			} else {
-				value = input.value.trim();
-				var err = this.verify[input.id](value);
-				newState = {
-					user: Object.assign(this.state.user, new this.UpdatedProp(input.id, value)),
-					errors: Object.assign(this.state.errors, new this.UpdatedProp(input.id, err))
-				};
-			}
-			this.setState(newState);
-		},
-
-		UpdatedProp: function UpdatedProp(prop, value) {
-			this[prop] = value;
-			return this;
-		},
-
-		componentDidMount: function componentDidMount() {
-			var _this = this;
-
-			eventEmitter.addListener('closeNotification', function () {
-				_this.setState({ notification: null });
-			});
-		},
-
-		findErrors: function findErrors() {
-			var errors = this.state.errors;
-			for (var key in errors) {
-				if (errors[key] || !(key === 'patronymic' || this.state.user[key])) return true;
-			}
-			return null;
-		},
-
-		submit: function submit() {
-			var _this2 = this;
-
-			this.setState({ isFetching: true });
-			var salt,
-			    user = this.state.user;
-
-			sendRequest('GET', 'api/users/signup').then(function (response) {
-				salt = response;
-				var hash = CryptoJS.AES.encrypt(JSON.stringify(user), salt).toString();
-				return sendRequest('POST', '/api/users/signup', hash);
-			}).then(function (id) {
-				Object.assign(user, { id: id, status: 'waiting', status_changed: new Date() });
-				eventEmitter.emit('addUser', user);
-
-				var message = '\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C ' + user.surname + ' ' + user.name + ' ' + (user.patronymic || '') + '\n\t\t\t\t\t\u0443\u0441\u043F\u0435\u0448\u043D\u043E \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D. \u041D\u0430 ' + user.email + ' \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u043E \u043F\u0438\u0441\u044C\u043C\u043E \u0434\u043B\u044F \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0438\u044F \n\t\t\t\t\t\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.';
-
-				_this2.setState({
-					notification: message,
-					isFetching: false,
-					user: { email: '', name: '', surname: '', patronymic: '', role: _this2.state.user.role }
-				});
-			}).catch(function (err) {
-				_this2.setState({
-					notification: err,
-					isFetching: false
-				});
-			});
-		},
-
-		// Object.assign(user, data)
-		// user.status = 'active';
-		// message += `\nЛогин: ${user.email} Пароль: ${user.password}`
-
-
-		render: function render() {
-			// console.log('values:', this.state.user)
-			// console.log('errors:', this.state.errors)
-			return React.createElement(
-				'div',
-				{ id: 'reg' },
-				React.createElement(
-					'h3',
-					null,
-					'\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0435\u0439:'
-				),
-				React.createElement(Notification, { notification: this.state.notification }),
-				React.createElement(
-					'div',
-					{ className: 'row control-group' },
-					React.createElement(
-						'div',
-						{ className: "col-sm-4 form-group registration" + (this.state.errors.surname ? ' has-error' : '') },
-						React.createElement('input', {
-							id: 'surname',
-							type: 'text',
-							placeholder: this.state.errors.surname || "Фамилия",
-							className: 'form-control',
-							ref: 'surname',
-							value: this.state.user.surname,
-							onChange: this.changeState })
-					),
-					React.createElement(
-						'div',
-						{ className: "col-sm-4 form-group registration" + (this.state.errors.name ? ' has-error' : '') },
-						React.createElement('input', {
-							id: 'name',
-							type: 'text',
-							placeholder: this.state.errors.name || "Имя",
-							className: 'form-control',
-							ref: 'name',
-							value: this.state.user.name,
-							onChange: this.changeState })
-					),
-					React.createElement(
-						'div',
-						{ className: "col-sm-4 form-group registration" + (this.state.errors.patronymic ? ' has-error' : '') },
-						React.createElement('input', {
-							id: 'patronymic',
-							type: 'text',
-							placeholder: this.state.errors.patronymic || "Отчество",
-							className: 'form-control',
-							ref: 'patronymic',
-							value: this.state.user.patronymic,
-							onChange: this.changeState })
-					)
-				),
-				React.createElement(
-					'div',
-					{ className: 'row' },
-					React.createElement(
-						'div',
-						{ className: "col-sm-5 registration" + (this.state.errors.email ? ' has-error' : '') },
-						React.createElement('input', {
-							id: 'email',
-							type: 'text',
-							placeholder: this.state.errors.email || "Адрес электронной почты",
-							className: 'form-control',
-							ref: 'email',
-							value: this.state.user.email,
-							onChange: this.changeState }),
-						this.state.user.email && this.state.errors.email ? React.createElement(
-							'span',
-							{ className: 'help-block' },
-							this.state.errors.email
-						) : null
-					),
-					React.createElement(
-						'div',
-						{ className: 'col-sm-4 registration' },
-						React.createElement(
-							'select',
-							{
-								id: 'role',
-								type: 'text',
-								className: 'form-control',
-								ref: 'role',
-								onChange: this.changeState },
-							React.createElement(
-								'option',
-								null,
-								'\u0421\u043E\u0442\u0440\u0443\u0434\u043D\u0438\u043A'
-							),
-							React.createElement(
-								'option',
-								null,
-								'\u0410\u0434\u043C\u0438\u043D\u0438\u0441\u0442\u0440\u0430\u0442\u043E\u0440'
-							)
-						)
-					),
-					React.createElement(
-						'div',
-						{ className: 'col-sm-3 registration', onClick: this.submit },
-						React.createElement(
-							'button',
-							{
-								id: 'addUser',
-								'data-toggle': 'tooltip',
-								title: '\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F',
-								className: 'btn btn-primary btn-block',
-								disabled: this.findErrors() || this.state.isFetching },
-							this.state.isFetching ? React.createElement('span', { className: 'glyphicon glyphicon-refresh glyphicon-refresh-animate' }) : null,
-							this.state.isFetching ? ' Проверка электронной почты...' : 'Добавить пользователя'
-						)
-					)
-				)
-			);
+			_this.changeInputStateHandler = _this.changeInputStateHandler.bind(_this);
+			_this.changeSelectStateHandler = _this.changeSelectStateHandler.bind(_this);
+			_this.submitHandler = _this.submitHandler.bind(_this);
+			_this.closeNotificationHandler = _this.closeNotificationHandler.bind(_this);
+			return _this;
 		}
 
-	});
+		_createClass(Registration, [{
+			key: 'changeInputStateHandler',
+			value: function changeInputStateHandler(event) {
+				var input = event.target;
+				var newState = {
+					value: input.value.trim(),
+					err: this.verify[input.id](input.value)
+				};
+
+				this.setState({
+					user: Object.assign({}, this.state.user, _defineProperty({}, input.id, newState))
+				});
+			}
+		}, {
+			key: 'changeSelectStateHandler',
+			value: function changeSelectStateHandler(event) {
+				var input = event.target;
+				var newValue = _dictionary2.default.intoEng(input.value);
+
+				this.setState({
+					user: Object.assign({}, this.state.user, _defineProperty({}, input.id, newValue))
+				});
+			}
+		}, {
+			key: 'findInputErrors',
+			value: function findInputErrors() {
+				var user = this.state.user;
+				for (var key in user) {
+					if (user[key].requiredToFill && user[key] || user[key].err) return true;
+				}
+				return false;
+			}
+		}, {
+			key: 'closeNotificationHandler',
+			value: function closeNotificationHandler() {
+				this.setState({ notification: null });
+			}
+		}, {
+			key: 'handleResponseData',
+			value: function handleResponseData(data, user) {
+				Object.assign(user, data, { status_changed: new Date() });
+
+				var message = '\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C <b>' + user.surname + ' ' + user.name + ' \n\t\t\t' + (user.patronymic || '') + '</b> \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D.\n\t\t\t<br><b>email</b>: ' + user.email + '<br><b>\u043F\u0430\u0440\u043E\u043B\u044C</b>: ' + user.password;
+
+				delete user.password;
+				eventEmitter.emit('addUser', user);
+
+				this.setState({
+					notification: message,
+					isFetching: false,
+					user: { email: '', name: '', surname: '', patronymic: '', role: this.state.user.role }
+				});
+			}
+		}, {
+			key: 'submitHandler',
+			value: function submitHandler() {
+				var _this2 = this;
+
+				this.setState({ isFetching: true });
+				var salt,
+				    user = this.state.user;
+				for (var key in this.state.user) {
+					user[key] = this.getValue[key]();
+				}
+
+				sendRequest('GET', 'api/users/signup').then(function (response) {
+					salt = response;
+					var hash = CryptoJS.AES.encrypt(JSON.stringify(user), salt).toString();
+					return sendRequest('POST', '/api/users/signup', hash);
+				}).then(function (data) {
+					return CryptoJS.AES.decrypt(data, salt).toString(CryptoJS.enc.Utf8);
+				}).then(JSON.parse).then(function (data) {
+					_this2.handleResponseData(data, user);
+				}).catch(function (err) {
+					_this2.setState({
+						notification: err,
+						isFetching: false
+					});
+				});
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				var _state = this.state,
+				    user = _state.user,
+				    notification = _state.notification;
+
+				console.log(user);
+				return React.createElement(
+					'div',
+					{ id: 'reg' },
+					React.createElement(
+						'h3',
+						null,
+						'\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0435\u0439:'
+					),
+					React.createElement(_notification2.default, {
+						notification: notification,
+						closeHandler: this.closeNotificationHandler }),
+					React.createElement(
+						'div',
+						{ className: 'row' },
+						React.createElement(_input2.default, {
+							className: "col-sm-4 form-group registration" + (user.surname.err ? ' has-error' : ''),
+							id: 'surname',
+							placeholder: user.surname.err || "Фамилия",
+							value: user.surname.value,
+							changeStateHandler: this.changeInputStateHandler
+						}),
+						React.createElement(_input2.default, {
+							className: "col-sm-4 form-group registration" + (user.name.err ? ' has-error' : ''),
+							id: 'name',
+							placeholder: user.name.err || "Имя",
+							value: user.name.value,
+							changeStateHandler: this.changeInputStateHandler
+						}),
+						React.createElement(_input2.default, {
+							className: "col-sm-4 form-group registration",
+							id: 'patronymic',
+							placeholder: user.patronymic.err || "Отчество",
+							value: user.patronymic.value,
+							changeStateHandler: this.changeInputStateHandler
+						})
+					),
+					React.createElement(
+						'div',
+						{ className: 'row' },
+						React.createElement(_input2.default, {
+							className: "col-sm-5 form-group registration" + (user.email.err ? ' has-error' : ''),
+							id: 'email',
+							placeholder: user.email.err || "Адрес электронной почты",
+							value: user.email.value,
+							changeStateHandler: this.changeInputStateHandler,
+							helpBlock: user.email.value && user.email.err ? user.email.err : null
+						}),
+						React.createElement(_select2.default, {
+							className: "col-sm-4 form-group registration",
+							id: 'role',
+							options: this.roles,
+							selected: user.role,
+							changeStateHandler: this.changeSelectStateHandler
+						}),
+						React.createElement(
+							'div',
+							{ className: 'col-sm-3 registration', onClick: this.submitHandler },
+							React.createElement(
+								'button',
+								{
+									id: 'addUser',
+									'data-toggle': 'tooltip',
+									title: '\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F',
+									className: 'btn btn-primary btn-block',
+									disabled: this.findInputErrors() || this.state.isFetching },
+								this.state.isFetching ? React.createElement('span', { className: 'glyphicon glyphicon-refresh glyphicon-refresh-animate' }) : null,
+								this.state.isFetching ? ' Проверка электронной почты...' : 'Добавить пользователя'
+							)
+						)
+					)
+				);
+			}
+		}]);
+
+		return Registration;
+	}(React.Component);
 
 	var Columns = React.createClass({
 		displayName: 'Columns',
 
 		render: function render() {
-			var _this3 = this;
-
 			var columns = this.props.columns;
 			return React.createElement(
 				'tr',
@@ -328,7 +322,7 @@
 					return React.createElement(
 						'th',
 						{ key: column.name, id: column.name },
-						_this3.props.rusNames[column.name],
+						_dictionary2.default.intoRus(column.name),
 						column.sortOrder ? React.createElement('span', {
 							className: 'pull-right glyphicon glyphicon-menu-' + (column.sortOrder === 'asc' ? 'up' : 'down'),
 							title: column.sortOrder ? "Отсортировано по " + (column.sortOrder === 'asc' ? 'возрастанию' : 'убыванию') : null
@@ -362,12 +356,12 @@
 				React.createElement(
 					'td',
 					null,
-					props.rusNames[user.role] ? props.rusNames[user.role] : user.role
+					_dictionary2.default.intoRus(user.role) || user.role
 				),
 				React.createElement(
 					'td',
 					null,
-					props.rusNames[user.status]
+					_dictionary2.default.intoRus(user.status)
 				),
 				React.createElement(
 					'td',
@@ -387,22 +381,6 @@
 	*/
 
 	var Users = React.createClass(Object.assign({
-		rusNames: {
-			// statuses
-			active: 'Активен',
-			baned: 'Заблокирован',
-			waiting: 'Ожидает подтверждения регистрации',
-			// roles
-			admin: 'Администратор',
-			employee: 'Сотрудник',
-			// columns
-			fullname: 'ФИО',
-			email: 'Электронная почта',
-			role: 'Роль',
-			status: 'Статус',
-			status_changed: 'Статус изменен',
-			operations: ''
-		},
 
 		sort: function sort(event) {
 			var target = event.target.tagName === 'SPAN' ? event.target.parentElement : event.target;
@@ -431,10 +409,10 @@
 		},
 
 		componentDidMount: function componentDidMount() {
-			var _this4 = this;
+			var _this3 = this;
 
 			sendRequest('GET', '/api/users').then(function (response) {
-				_this4.setState({ users: JSON.parse(response, function (key, value) {
+				_this3.setState({ users: JSON.parse(response, function (key, value) {
 						if (key === 'status_changed') return value ? new Date(value) : null;
 						return value;
 					})
@@ -445,7 +423,7 @@
 
 			eventEmitter.addListener('addUser', function (user) {
 				console.log(user);
-				_this4.setState({ users: [].concat(_this4.state.users, user) });
+				_this3.setState({ users: [].concat(_this3.state.users, user) });
 			});
 		},
 
@@ -454,7 +432,7 @@
 		},
 
 		showUsers: function showUsers(users) {
-			var _this5 = this;
+			var _this4 = this;
 
 			return React.createElement(
 				'table',
@@ -462,7 +440,7 @@
 				React.createElement(
 					'thead',
 					{ onClick: this.sort },
-					React.createElement(Columns, { columns: this.state.columns, rusNames: this.rusNames })
+					React.createElement(Columns, { columns: this.state.columns })
 				),
 				React.createElement(
 					'tbody',
@@ -471,8 +449,7 @@
 						return React.createElement(User, {
 							key: user.id,
 							user: user,
-							rusNames: _this5.rusNames,
-							getSurnameAndInitials: _this5.getSurnameAndInitials });
+							getSurnameAndInitials: _this4.getSurnameAndInitials });
 					})
 				)
 			);
@@ -488,7 +465,6 @@
 					null,
 					'\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0435 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0438:'
 				),
-				React.createElement(Notification, { notification: this.state.notification }),
 				users.length ? this.showUsers(users) : React.createElement(
 					'p',
 					null,
@@ -496,7 +472,7 @@
 				)
 			);
 		}
-	}, __webpack_require__(3)));
+	}, __webpack_require__(8)));
 
 	var App = React.createClass({
 		displayName: 'App',
@@ -1048,6 +1024,366 @@
 
 	'use strict';
 
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Notification = function (_React$Component) {
+		_inherits(Notification, _React$Component);
+
+		function Notification() {
+			_classCallCheck(this, Notification);
+
+			return _possibleConstructorReturn(this, (Notification.__proto__ || Object.getPrototypeOf(Notification)).apply(this, arguments));
+		}
+
+		_createClass(Notification, [{
+			key: 'renderNotification',
+			value: function renderNotification(_ref) {
+				var notification = _ref.notification,
+				    closeHandler = _ref.closeHandler;
+
+				var type = notification instanceof Error ? 'danger' : 'info';
+				var message = notification.message || notification;
+
+				return React.createElement(
+					'div',
+					{ id: type, className: 'alert alert-' + type },
+					React.createElement(
+						'a',
+						{ className: 'close', onClick: closeHandler },
+						'\xD7'
+					),
+					React.createElement('div', { dangerouslySetInnerHTML: { __html: message } })
+				);
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				var props = this.props;
+				console.log(props.closeHandler);
+				return props.notification ? this.renderNotification(props) : null;
+			}
+		}]);
+
+		return Notification;
+	}(React.Component);
+
+	exports.default = Notification;
+		;
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Input = function (_React$Component) {
+		_inherits(Input, _React$Component);
+
+		function Input() {
+			_classCallCheck(this, Input);
+
+			return _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).apply(this, arguments));
+		}
+
+		_createClass(Input, [{
+			key: "render",
+			value: function render() {
+				var _props = this.props,
+				    className = _props.className,
+				    id = _props.id,
+				    placeholder = _props.placeholder,
+				    value = _props.value,
+				    changeStateHandler = _props.changeStateHandler,
+				    helpBlock = _props.helpBlock;
+
+
+				return React.createElement(
+					"div",
+					{ className: className },
+					React.createElement("input", {
+						id: id,
+						type: "text",
+						placeholder: placeholder,
+						className: "form-control",
+						value: value,
+						onChange: changeStateHandler
+					}),
+					helpBlock ? React.createElement(
+						"span",
+						{ className: "help-block" },
+						helpBlock
+					) : null
+				);
+			}
+		}]);
+
+		return Input;
+	}(React.Component);
+
+		exports.default = Input;
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _dictionary = __webpack_require__(6);
+
+	var _dictionary2 = _interopRequireDefault(_dictionary);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Select = function (_React$Component) {
+		_inherits(Select, _React$Component);
+
+		function Select() {
+			_classCallCheck(this, Select);
+
+			return _possibleConstructorReturn(this, (Select.__proto__ || Object.getPrototypeOf(Select)).apply(this, arguments));
+		}
+
+		_createClass(Select, [{
+			key: "renderOptions",
+			value: function renderOptions(options, selected) {
+				var translatedOpt = void 0;
+
+				return options.map(function (opt) {
+					translatedOpt = _dictionary2.default.intoRus(opt);
+					return opt === selected ? React.createElement(
+						"option",
+						{ selected: "selected" },
+						translatedOpt
+					) : React.createElement(
+						"option",
+						null,
+						translatedOpt
+					);
+				});
+			}
+		}, {
+			key: "render",
+			value: function render() {
+				var _props = this.props,
+				    className = _props.className,
+				    id = _props.id,
+				    changeStateHandler = _props.changeStateHandler,
+				    options = _props.options,
+				    helpBlock = _props.helpBlock,
+				    selected = _props.selected;
+
+
+				return React.createElement(
+					"div",
+					{ className: "col-sm-4 registration" },
+					React.createElement(
+						"select",
+						{ selected: selected,
+							id: id,
+							className: "form-control",
+							onChange: changeStateHandler },
+						this.renderOptions(options, selected)
+					),
+					helpBlock ? React.createElement(
+						"span",
+						{ className: "help-block" },
+						helpBlock
+					) : null
+				);
+			}
+		}]);
+
+		return Select;
+	}(React.Component);
+
+		exports.default = Select;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Translate = function () {
+		function Translate() {
+			_classCallCheck(this, Translate);
+
+			// translate into Russian
+			this.engToRus = {
+				// statuses
+				active: 'Активен',
+				baned: 'Заблокирован',
+				waiting: 'Ожидает подтверждения регистрации',
+				// roles
+				admin: 'Администратор',
+				employee: 'Сотрудник',
+				// columns
+				fullname: 'ФИО',
+				email: 'Электронная почта',
+				role: 'Роль',
+				status: 'Статус',
+				status_changed: 'Статус изменен',
+				operations: ''
+			};
+
+			// translate into English
+			this.rusToEng = {
+				// roles
+				'Администратор': 'admin',
+				'Сотрудник': 'employee'
+			};
+		}
+
+		_createClass(Translate, [{
+			key: 'intoRus',
+			value: function intoRus(naming) {
+				return this.engToRus[naming];
+			}
+		}, {
+			key: 'intoEng',
+			value: function intoEng(naming) {
+				return this.rusToEng[naming];
+			}
+		}]);
+
+		return Translate;
+	}();
+
+		exports.default = new Translate();
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var ModalWindow = function (_React$Component) {
+		_inherits(ModalWindow, _React$Component);
+
+		function ModalWindow() {
+			_classCallCheck(this, ModalWindow);
+
+			return _possibleConstructorReturn(this, (ModalWindow.__proto__ || Object.getPrototypeOf(ModalWindow)).apply(this, arguments));
+		}
+
+		_createClass(ModalWindow, [{
+			key: "render",
+			value: function render() {
+				return React.createElement(
+					"div",
+					{ "class": "modal fade container", id: "myModal", role: "dialog" },
+					React.createElement(
+						"div",
+						{ "class": "modal-dialog modal-lg" },
+						React.createElement(
+							"div",
+							{ "class": "modal-content" },
+							React.createElement(
+								"div",
+								{ "class": "modal-header" },
+								React.createElement(
+									"button",
+									{ type: "button", "class": "close", "data-dismiss": "modal" },
+									"\xD7"
+								),
+								React.createElement(
+									"h4",
+									{ "class": "modal-title" },
+									"Modal Header"
+								)
+							),
+							React.createElement(
+								"div",
+								{ "class": "modal-body" },
+								React.createElement(
+									"p",
+									null,
+									"This is a large modal."
+								)
+							),
+							React.createElement(
+								"div",
+								{ "class": "modal-footer" },
+								React.createElement(
+									"button",
+									{ type: "button", "class": "btn btn-default", "data-dismiss": "modal" },
+									"Close"
+								)
+							)
+						)
+					)
+				);
+			}
+		}]);
+
+		return ModalWindow;
+	}(React.Component);
+	//<h2>Large Modal</h2>
+	//<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Open Large Modal</button>
+
+
+		exports.default = ModalWindow;
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	'use strict';
+
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 	module.exports = {
@@ -1062,12 +1398,10 @@
 
 			var _rest$map = rest.map(function (str) {
 				return str.toLowerCase();
-			});
-
-			var _rest$map2 = _slicedToArray(_rest$map, 2);
-
-			var s1 = _rest$map2[0];
-			var s2 = _rest$map2[1];
+			}),
+			    _rest$map2 = _slicedToArray(_rest$map, 2),
+			    s1 = _rest$map2[0],
+			    s2 = _rest$map2[1];
 
 			return +(s1 < s2) || +(s1 === s2) - 1;
 		},
@@ -1083,12 +1417,10 @@
 				rest[_key2 - 2] = arguments[_key2];
 			}
 
-			var _rest$map3 = rest.map(this.getSurnameAndInitials);
-
-			var _rest$map4 = _slicedToArray(_rest$map3, 2);
-
-			var fname1 = _rest$map4[0];
-			var fname2 = _rest$map4[1];
+			var _rest$map3 = rest.map(this.getSurnameAndInitials),
+			    _rest$map4 = _slicedToArray(_rest$map3, 2),
+			    fname1 = _rest$map4[0],
+			    fname2 = _rest$map4[1];
 
 			var result = this.compareStrings(fname1, fname2);
 			return order === 'asc' ? -result : result;
@@ -1104,12 +1436,10 @@
 
 			var _rest$map5 = rest.map(function (user) {
 				return _this.rusNames[user[key]] || user[key];
-			});
-
-			var _rest$map6 = _slicedToArray(_rest$map5, 2);
-
-			var rus1 = _rest$map6[0];
-			var rus2 = _rest$map6[1];
+			}),
+			    _rest$map6 = _slicedToArray(_rest$map5, 2),
+			    rus1 = _rest$map6[0],
+			    rus2 = _rest$map6[1];
 
 			var result = this.compareStrings(rus1, rus2);
 			return order === 'asc' ? -result : result;

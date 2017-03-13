@@ -70,12 +70,10 @@
 		}, false);
 
 		function encrypt(data, salts) {
-			var _salts$split = salts.split('$');
-
-			var _salts$split2 = _slicedToArray(_salts$split, 2);
-
-			var salt = _salts$split2[0];
-			var tempSalt = _salts$split2[1];
+			var _salts$split = salts.split('$'),
+			    _salts$split2 = _slicedToArray(_salts$split, 2),
+			    salt = _salts$split2[0],
+			    tempSalt = _salts$split2[1];
 
 			data = CryptoJS.SHA3(data, salt).toString();
 			return CryptoJS.HmacSHA3(data, tempSalt).toString();
