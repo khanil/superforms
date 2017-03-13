@@ -50,8 +50,8 @@
 
 	(function () {
 
-		var CryptoJS = __webpack_require__(2);
-		var sendRequest = __webpack_require__(1);
+		var CryptoJS = __webpack_require__(1);
+		var sendRequest = __webpack_require__(2);
 
 		// signin
 		document.getElementById('submit').addEventListener('click', signIn, false);
@@ -131,36 +131,6 @@
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	module.exports = function (method, url, sentData) {
-
-		return new Promise(function (resolve, reject) {
-
-			var xhr = new XMLHttpRequest();
-			xhr.open(method, url, true);
-			xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-
-			xhr.onload = function () {
-				if (this.status === 200) {
-					resolve(this.response);
-				} else {
-					reject(new Error(this.response));
-				}
-			};
-
-			xhr.onerror = function () {
-				reject(new Error("Ошибка сети"));
-			};
-
-			sentData ? xhr.send(sentData) : xhr.send();
-		});
-		};
-
-/***/ },
-/* 2 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -657,6 +627,36 @@
 	})();
 
 	module.exports = CryptoJS;
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	module.exports = function (method, url, sentData) {
+
+		return new Promise(function (resolve, reject) {
+
+			var xhr = new XMLHttpRequest();
+			xhr.open(method, url, true);
+			xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+			xhr.onload = function () {
+				if (this.status === 200) {
+					resolve(this.response);
+				} else {
+					reject(new Error(this.response));
+				}
+			};
+
+			xhr.onerror = function () {
+				reject(new Error("Ошибка сети"));
+			};
+
+			sentData ? xhr.send(sentData) : xhr.send();
+		});
+		};
 
 /***/ }
 /******/ ]);

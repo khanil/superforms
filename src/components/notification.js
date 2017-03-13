@@ -12,8 +12,8 @@ export default class Notification extends React.Component {
 	}
 
 	render() {
-		const props = this.props;
-		console.log(props.closeHandler)
-		return props.notification? this.renderNotification(props) : null
+		return this.props.notification?
+			this.renderNotification(this.props) :
+			null
 	}
 };

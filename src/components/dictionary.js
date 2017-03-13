@@ -4,7 +4,7 @@ class Translate {
 		this.engToRus = {
 			// statuses
 			active: 'Активен',
-			baned: 'Заблокирован',
+			banned: 'Заблокирован',
 			waiting: 'Ожидает подтверждения регистрации',
 			// roles
 			admin: 'Администратор',

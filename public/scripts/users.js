@@ -78,8 +78,8 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var CryptoJS = __webpack_require__(2);
-	var sendRequest = __webpack_require__(1);
+	var CryptoJS = __webpack_require__(1);
+	var sendRequest = __webpack_require__(2);
 
 	var eventEmitter = new EventEmitter();
 
@@ -232,7 +232,6 @@
 				    user = _state.user,
 				    notification = _state.notification;
 
-				console.log(user);
 				return React.createElement(
 					'div',
 					{ id: 'reg' },
@@ -491,36 +490,6 @@
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	module.exports = function (method, url, sentData) {
-
-		return new Promise(function (resolve, reject) {
-
-			var xhr = new XMLHttpRequest();
-			xhr.open(method, url, true);
-			xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-
-			xhr.onload = function () {
-				if (this.status === 200) {
-					resolve(this.response);
-				} else {
-					reject(new Error(this.response));
-				}
-			};
-
-			xhr.onerror = function () {
-				reject(new Error("Ошибка сети"));
-			};
-
-			sentData ? xhr.send(sentData) : xhr.send();
-		});
-		};
-
-/***/ },
-/* 2 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1019,6 +988,36 @@
 	module.exports = CryptoJS;
 
 /***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	module.exports = function (method, url, sentData) {
+
+		return new Promise(function (resolve, reject) {
+
+			var xhr = new XMLHttpRequest();
+			xhr.open(method, url, true);
+			xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+			xhr.onload = function () {
+				if (this.status === 200) {
+					resolve(this.response);
+				} else {
+					reject(new Error(this.response));
+				}
+			};
+
+			xhr.onerror = function () {
+				reject(new Error("Ошибка сети"));
+			};
+
+			sentData ? xhr.send(sentData) : xhr.send();
+		});
+		};
+
+/***/ },
 /* 3 */
 /***/ function(module, exports) {
 
@@ -1068,9 +1067,7 @@
 		}, {
 			key: 'render',
 			value: function render() {
-				var props = this.props;
-				console.log(props.closeHandler);
-				return props.notification ? this.renderNotification(props) : null;
+				return this.props.notification ? this.renderNotification(this.props) : null;
 			}
 		}]);
 
@@ -1254,7 +1251,7 @@
 			this.engToRus = {
 				// statuses
 				active: 'Активен',
-				baned: 'Заблокирован',
+				banned: 'Заблокирован',
 				waiting: 'Ожидает подтверждения регистрации',
 				// roles
 				admin: 'Администратор',

@@ -7,8 +7,7 @@ webpackConfig = {
 	context: __dirname,
 	entry: {
 		signin: './components/signin.js',
-		users: './components/users.js',
-		journal: './components/journal.js'
+		users: './components/users.js'
 	},
 	output: {
 		filename: '[name].js',
