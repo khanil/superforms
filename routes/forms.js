@@ -16,8 +16,12 @@ exports.sendFormsPage = (req, res, next) => {
 			for(let i = 0; i < foundForms.length; i++) {
 					forms.modifyForJournal(foundForms[i])
 				}
-			
-			const preloadedState = normalizeState(foundForms);
+
+			const preloadedState = normalizeState(
+				foundForms,
+				users.encode(req.user.id)
+			);
+
 			const html = renderReactHTML(preloadedState);
 
 			res.render('forms', {
@@ -34,7 +38,7 @@ exports.sendJournalPage = (req, res) => {
 
 
 exports.sendGeneratorPage = function (req, res) {
-	res.render('generation&edit', { 
+	res.render('generation&edit', {
 		title: 'Создание формы',
 		page: 'Главная',
 		type: 'CREATE_FORM',
@@ -45,7 +49,7 @@ exports.sendGeneratorPage = function (req, res) {
 
 
 exports.sendEditPage = function(req, res, next) {
-	res.render('generation&edit', { 
+	res.render('generation&edit', {
 		title: 'Редактирование формы',
 		type: 'EDIT_FORM',
 		id: req.params.id,
@@ -155,8 +159,8 @@ exports.copy = function(req, res, next) {
 		.then(result => {
 			if(result) {
 				res.json({
-					index: result.id, 
-					id: forms.encode(result.id) 
+					index: result.id,
+					id: forms.encode(result.id)
 				});
 			}
 		})
