@@ -660,6 +660,7 @@ div.container.message {
   vertical-align: top;
   margin-left: 5px;
   cursor: help;
+  color: #e67e22;
 }
 
 .form-responses__header {
@@ -671,6 +672,7 @@ div.container.message {
   margin-left: 5px;
   cursor: help;
   font-size: 20px;
+  color: #e67e22;
 }
 
 .form-responses__header .type {
