@@ -26,6 +26,22 @@ export function normalizeState(foundForms, userId) {
   const state = {
     forms: forms.initialState,
     modal: modal.initialState,
+    tables: {
+      org: {
+        sort: {
+          key: 'index',
+          type: 'number',
+          order: 'desc',
+        },
+      },
+      personal: {
+        sort: {
+          key: 'index',
+          type: 'number',
+          order: 'desc',
+        }
+      },
+    },
     user: userId,
   };
 
