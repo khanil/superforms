@@ -38,7 +38,7 @@ exports.sendResponsesPage = function(req, res, next) {
 		config: {
 			user_id: req.params.user_id,
 			form_id: req.params.id, 
-			timeout: 3000000
+			timeout: 30000
 		}
 	});
 };

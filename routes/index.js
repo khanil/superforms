@@ -62,7 +62,7 @@ module.exports = function (app) {
 	app.post('/api/forms', loadData, checkAuth, forms.save);//save form's template
 
 	app.get('/api/forms/:id', loadData, forms.getOne);//get form's template in JSON 
-	app.post('/api/forms/:id/copy', loadData, checkAuth, checkFormByAuthor, forms.copy);//copy form's template
+	app.post('/api/forms/:id/copy', loadData, checkAuth, forms.copy);//copy form's template
 	app.post('/api/forms/:id/update', loadData, checkAuth, checkFormByAuthor, forms.update);//update form's template
 	app.delete('/api/forms/:id/delete', loadData, checkAuth, checkFormByAuthor, forms.delete);
 	app.post('/api/forms/:id/send', loadData, checkAuth, checkFormByAuthor, forms.send);
