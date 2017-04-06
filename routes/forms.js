@@ -14,12 +14,15 @@ exports.sendFormsPage = (req, res, next) => {
 	forms.findAllForOrg(req.user.org_id)
 		.then(foundForms => {
 			for(let i = 0; i < foundForms.length; i++) {
-					forms.modifyForJournal(foundForms[i])
-				}
+				forms.modifyForJournal(foundForms[i])
+			}
 
 			const preloadedState = normalizeState(
 				foundForms,
-				users.encode(req.user.id)
+				{
+					user: req.session.user,
+					activeTab: req.session.defaultTab || "org",
+				}
 			);
 
 			const html = renderReactHTML(preloadedState);

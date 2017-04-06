@@ -7,6 +7,7 @@ import rootReducer from '../../super-forms-client/app/forms-app/reducer';
 import FormsListApp from '../../super-forms-client/app/forms-app/components';
 import forms from '../../super-forms-client/app/forms-app/modules/forms';
 import modal from '../../super-forms-client/app/forms-app/modules/modal';
+import tables from '../../super-forms-client/app/forms-app/modules/tables';
 
 export function renderReactHTML(preloadedState) {
   // Create a new Redux store instance
@@ -22,27 +23,15 @@ export function renderReactHTML(preloadedState) {
   return html;
 }
 
-export function normalizeState(foundForms, userId) {
+export function normalizeState(foundForms, session) {
   const state = {
     forms: forms.initialState,
     modal: modal.initialState,
     tables: {
-      org: {
-        sort: {
-          key: 'index',
-          type: 'number',
-          order: 'desc',
-        },
-      },
-      personal: {
-        sort: {
-          key: 'index',
-          type: 'number',
-          order: 'desc',
-        }
-      },
+      org: tables.initialTable,
+      personal: tables.initialTable,
     },
-    user: userId,
+    session,
   };
 
   state.forms.db = forms.model.init(foundForms);
