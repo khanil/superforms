@@ -4,32 +4,82 @@ var HttpError = require('../error').HttpError;
 var mailer = require('../libs/mailer')
 var users = require('../models/user');
 
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { Provider } from 'react-redux';
+
+import configureStore from '../../super-forms-client/app/redux/create';
+import rootReducer from '../../super-forms-client/app/forms-app/reducer';
+import FormsListApp from '../../super-forms-client/app/forms-app/components';
+import formsLists from '../../super-forms-client/app/forms-app/modules/formsLists';
+import entities from '../../super-forms-client/app/forms-app/modules/entities';
+
 /*
 Sending of HTML pages
 */
 
-import { renderReactHTML, normalizeState } from '../libs/renderFormsListApp';
-
 exports.sendFormsPage = (req, res, next) => {
+	const session = {
+		user: req.session.user,
+		activeTab: req.session.defaultTab || "org",
+	};
+
+	const store = configureStore(rootReducer, {
+		session
+	});
+
+	store.dispatch(
+		entities.actions.add({
+			users: {
+				[req.session.user]: {
+					user_id: req.session.user,
+					name: req.user.name,
+					surname: req.user.surname,
+					patronymic: req.user.patronymic,
+					author: `${req.user.surname} ${req.user.name[0]}.${req.user.patronymic? req.user.patronymic[0] + '.' : ''}`
+				}
+			}
+		})
+	);
+
 	forms.findAllForOrg(req.user.org_id)
 		.then(foundForms => {
 			for(let i = 0; i < foundForms.length; i++) {
 				forms.modifyForJournal(foundForms[i])
 			}
 
-			const preloadedState = normalizeState(
-				foundForms,
-				{
-					user: req.session.user,
-					activeTab: req.session.defaultTab || "org",
-				}
+			store.dispatch(
+				formsLists.actions.init("org", foundForms)
 			);
+		})
+		.then(() => {
+			return forms.findAllForUser(req.user.id);
+		})
+		.then(foundForms => {
+			for(let i = 0; i < foundForms.length; i++) {
+				Object.assign(foundForms[i], {
+					name: req.user.name,
+					surname: req.user.surname,
+					patronymic: req.user.patronymic,
+					user_id: req.user.id
+				});
+				forms.modifyForJournal(foundForms[i])
+			}
 
-			const html = renderReactHTML(preloadedState);
+			store.dispatch(
+				formsLists.actions.init("personal", foundForms)
+			);
+		})
+		.then(() => {
+			const html = renderToString(
+				<Provider store={store}>
+					<FormsListApp />
+				</Provider>
+			);
 
 			res.render('forms', {
 				html,
-				preloadedState
+				preloadedState: store.getState()
 			});
 		})
 		['catch'](next);
@@ -161,6 +211,8 @@ exports.copy = function(req, res, next) {
 	forms.add(req.user.id, newForm)
 		.then(result => {
 			if(result) {
+				console.log(result);
+				console.log(newForm);
 				res.json({
 					index: result.id,
 					id: forms.encode(result.id)
