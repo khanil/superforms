@@ -71,7 +71,7 @@ body.no-header {
 
 
 .page-header-btns {
-  
+
 }
 
 .page-header-btns .btn-group {
@@ -249,7 +249,7 @@ table .form-group {
 }
 
 .form-generator {
-  
+
 }
 
 .form-generator__submit-btn {
@@ -271,23 +271,23 @@ table .form-group {
 }
 
 .form-generator-item__item-generator {
-  
+
 }
 
 .form-generator-item__item-generator_type_header {
-  
+
 }
 
 .form-generator-item__item-generator_type_question {
-  
+
 }
 
 .form-generator-item__item-generator_type_delimeter {
-  
+
 }
 
 .form-generator-item__item-generator_type_image {
-  
+
 }
 
 .form-generator-item__serial-number {
@@ -319,7 +319,7 @@ table .form-group {
 }
 
 .super-form__item_type_question {
-  
+
 }
 
 .super-form__item_type_delimeter {
@@ -327,12 +327,12 @@ table .form-group {
 }
 
 .super-form__item_type_delimeter hr {
-  
+
   margin-top: 0;
 }
 
 .super-form__item_type_image {
-  
+
 }
 
 
@@ -377,17 +377,17 @@ table .form-group {
   padding-right: 0;
 }
 
-#reg:after { 
+#reg:after {
   content: " ";
-  display: block; 
-  height: 0; 
+  display: block;
+  height: 0;
   clear: both;
 }
 
 
 
 /* headers */
-header { 
+header {
   height: 40px;
 }
 
@@ -491,19 +491,19 @@ header nav.container span {
 header .triangle {
   position: relative;
   float: left;
-  width: 0; 
-  height: 0; 
+  width: 0;
+  height: 0;
   z-index: 2 !important;
 }
 
 header .triangle-left {
-  border-top: 40px solid transparent; 
-  border-right: 12px solid #fefefe; 
+  border-top: 40px solid transparent;
+  border-right: 12px solid #fefefe;
 }
 
 header .triangle-right {
-  border-top: 40px solid transparent; 
-  border-left: 12px solid #fefefe; 
+  border-top: 40px solid transparent;
+  border-left: 12px solid #fefefe;
 }
 
 div.container.message {
@@ -540,7 +540,7 @@ div.container.message {
   width: 744px;
 }
 
-/* loading animation */ 
+/* loading animation */
 .glyphicon-refresh-animate {
     -moz-animation: spin .7s infinite linear;
     -webkit-animation: webkit-spin .7s infinite linear;
@@ -554,102 +554,14 @@ div.container.message {
 @keyframes spin {
     from { transform: scale(1) rotate(0deg);}
     to { transform: scale(1) rotate(360deg);}
-}
+}`
 
-
-/*Super - Table*/
-.super-table__row_empty {
-  text-align: center;
-}
- 
-.super-table__header .fa-sort-asc {
-  padding-top: 5px;
-}
- 
-.super-table__cell {
-  vertical-align: middle !important;
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
-}
- 
-.super-table__column_clickable {
-  cursor: pointer;
-}
- 
-.super-table__row_clickable {
-  cursor: pointer;
-}
- 
-.super-table .dropdown {
-  display: inline-block;
-}
- 
-.super-table .dropdown .dropdown-toggle button {
-  padding: 4px 6px 2px 6px;
-  margin-left: 4px;
-}
- 
-.super-table .dropdown .dropdown-toggle button:focus {
-  outline: none;
-}
- 
-.super-table .dropdown .dropdown-toggle i {
-  display: block;
-  
-}
- 
-.super-table .dropdown .dropdown-toggle .fa-sort-asc {
-  margin-bottom: -6px;
-  margin-top: -8px;
-}
- 
-.super-table .dropdown .dropdown-toggle .fa-sort-desc {
-  margin-top: -8px;
-}
- 
-/*FormsList Page*/
-.nav-pretable {
-  margin: auto;
-  margin-bottom: 10px;
-  width: 242px;
-}
- 
-/*Forms List Table Styles*/
-.super-table_name_form-list table {
-  margin-bottom: 65px;
-}
- 
-.super-table_name_form-list .super-table__column_id_control {
-  width: 175px;
-}
- 
-.super-table_name_journal .super-table__cell_id_title,
-.super-table_name_form-list .super-table__cell_id_title {
-  max-width: 500px;
-  overflow-x: hidden;
-  text-overflow: ellipsis;
-}
-
-.super-table_name_journal .super-table__cell_id_basis > span,
-.super-table_name_form-list .super-table__cell_id_basis > span {
-  cursor: help;
-}
- 
-/** Journal Table Styles*/
-.super-table_name_journal table {
-  margin-bottom: 65px;
-}
- 
-.super-table_name_journal .super-table__column_id_control {
-  width: 1px;
-}
- 
 .loading-spinner span,
 .loading-spinner .fa {
   display: inline-block;
   vertical-align: middle;
 }
- 
+
 .loading-spinner span {
   margin-left: 5px;
 }
@@ -723,7 +635,7 @@ div.container.message {
 }
 
 .super-form__item_type_question {
-  
+
 }
 
 .super-form__item_type_delimeter {
@@ -738,4 +650,24 @@ div.container.message {
 
 .super-form__item_type_delimeter hr {
   margin-top: 0;
+}
+
+.sort-indn {
+  transition: box-shadow .3s cubic-bezier(.175,.885,.32,1.275);
+  border-right-width: 0 !important;
+}
+
+.sort-indn-asc {
+  box-shadow: inset 0 4px 0 0 #6391b9;
+}
+
+.sort-indn-desc {
+  box-shadow: inset 0 -4px 0 0 #6391b9;
+  border-bottom-width: 0 !important;
+}
+
+.table > thead > tr > th {
+  vertical-align: inherit !important;
+  text-align: center;
+  cursor: pointer;
 }
